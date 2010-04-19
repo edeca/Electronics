@@ -42,9 +42,6 @@ char ee24_is_busy(char control_byte)
 //       until the write has finished
 void ee24_write_sequential(char device_address, short data_address, char *data, unsigned char count)
 {
-	// TODO: ACK is returned by i2c_write, we should probably block until it has finished
-	//		 See section 7 of the manual
-
 	// Control byte:
 	// 1010     - preamble
 	//     AAA  - address
