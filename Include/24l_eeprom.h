@@ -1,6 +1,7 @@
 /********
- * Author: David Cannings <david@edeca.net>
- * 
+ *  Author: David Cannings <david@edeca.net>
+ * License: BSD (see BSD-LICENSE.TXT)
+ *
  * BoostC code to use 24LCxxx EEPROM chips.  Uses the BoostC I2C libraries
  * which should be included and configured in the main project.  I2C works 
  * in either software or hardware mode.
