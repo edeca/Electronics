@@ -1,6 +1,9 @@
 Electronics Repository
 
 David Cannings <david@edeca.net>
-See: http://edeca.net
+http://edeca.net
 
-Code for PIC microcontroller electronics, mainly in BoostC.
+Code for PIC microcontroller electronics, mainly in HI-TECH.
+
+Unless otherwise stated, all code in this repository is covered by
+the BSD license.

@@ -3,12 +3,15 @@
  *    Author: David <david@edeca.net>
  *      Date: November 2010
  * Datasheet: http://datasheets.maxim-ic.com/en/ds/DS620.pdf
+ *   License: BSD (see BSD-LICENSE.TXT)
  *  Compiler: Designed for HI-TECH PICC
  *
  * TODO:
  *   - allow setting of configuration register
  *   - implement continuous conversion mode
  *   - allow setting PO (thermostat) pins
+ *
+ * Nov 06 2010 - initial version
  */
 
 #include "ds620.h"
