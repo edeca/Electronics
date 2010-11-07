@@ -20,7 +20,7 @@
 //
 // Warning: this takes huge amounts of memory
 void
-ds620_print_temperature(short reading)
+ds620_PrintTemperature(short reading)
 {
 	//int fraction[] = { 
 
