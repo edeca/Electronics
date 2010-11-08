@@ -30,7 +30,7 @@ ds620_PrintTemperature(short reading)
 
 // Return the whole number part
 signed short
-ds620_GetDecimal(short reading)
+ds620_ToDecimal(short reading)
 {
 	signed short decimal;
 	
@@ -43,25 +43,16 @@ ds620_GetDecimal(short reading)
 	return decimal;
 }
 
-// Get the current temperature from the DS620
-//
-// Return is 16 bit short:
-//   0b
-//     S                 Sign
-//      DDDDDDDD         Decimal (2^7 to 2^0)
-//              FFF      Fraction (2^-1 to 2^-4)
-//                 000   Hard wired to 0
-//
 unsigned short
-ds620_GetTemperature(int address)
+ds620_ReadRegister16(int address, int reg) 
 {
-	unsigned short temperature;
+	unsigned short value;
 
 	// Lowest three bits are the address, shift left one
 	// to allow for I2C R/W bit
 	address &= 0b00000111;
 	address <<= 1;
-	address |= DS620_CONTROL_BYTE;
+	address |= DS620_ADDRESS_MASK;
 	
 	// Send the start conversion command (one-shot mode)
 	i2c_Start();
@@ -75,16 +66,31 @@ ds620_GetTemperature(int address)
 	// Now start reading from the MSB register
 	i2c_Start();
 	i2c_WriteTo(address);
-	i2c_PutByte(DS620_TEMP_MSB);
+	i2c_PutByte(reg);
 
 	// i2c bus "restart", switch into read mode
 	i2c_ReadFrom(address);
 
 	// Read 2 bytes, the MSB then LSB
-	temperature = i2c_GetByte(I2C_MORE) << 8;
-	temperature |= i2c_GetByte(I2C_MORE);
+	value = i2c_GetByte(I2C_MORE) << 8;
+	value |= i2c_GetByte(I2C_MORE);
 
 	i2c_Stop();
 		
-	return temperature;
+	return value;
+}
+
+// Get the current temperature from the DS620
+//
+// Return is 16 bit short:
+//   0b
+//     S                 Sign
+//      DDDDDDDD         Decimal (2^7 to 2^0)
+//              FFFF     Fraction (2^-1 to 2^-4)
+//                  000  Hard wired to 0
+//
+unsigned short
+ds620_GetTemperature(int address)
+{
+	return ds620_ReadRegister16(DS620_TEMP_MSB);	
 }
