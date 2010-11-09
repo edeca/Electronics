@@ -15,6 +15,7 @@
  */
 
 #include "ds620.h"
+#include "i2c.h"
 
 // Print the current temperature using printf
 //
