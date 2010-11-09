@@ -28,3 +28,4 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 @todo Update all code so that #includes such as i2c.h aren't relative
 
 */
+// This page is used by doxygen to generate documents.
