@@ -2,7 +2,17 @@
  * @file   ds620.h
  * @author David <david@edeca.net>
  * @date   November, 2010
- * @brief  Header for DS620 temperature sensor library
+ * @brief  Header for DS620 temperature sensor library.
+ * @details
+ *
+ * A library for accessing the DS620 temperature sensor, using i2c.
+ *
+ * Example Usage:
+ * @code
+ *    unsigned short temp = ds620_GetTemperature(0b001);
+ *    ds620_PrintTemperature(temp);
+ *    signed short decimal = ds620_ToDecimal(temp);
+ * @endcode
  */
 
 /* 
@@ -41,21 +51,6 @@
 #define DS620_CONFIG_LSB 0xAD
 
 /** @} */
-
-/**
- * @name    DS620 temperature sensor interface
- * @brief  
- *
- * This API provides certain actions as an example.
- *
- * Example Usage:
- * @code
- *    unsigned short t = ds620_GetTemperature(1);
- *    ds620_PrintTemperature(t);
- *    signed short decimal = ds620_ToDecimal(t);
- * @endcode
- */
-
 
 /**
  * Print a temperature value using printf
