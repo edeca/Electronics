@@ -13,6 +13,9 @@
  *    ds620_PrintTemperature(temp);
  *    signed short decimal = ds620_ToDecimal(temp);
  * @endcode
+ *
+ * @todo Add a function to set continuous or one-shot mode
+ * @todo Add functions to allow storage/retrieval of data in the user registers
  */
 
 /* 
