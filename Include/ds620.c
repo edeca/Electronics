@@ -95,3 +95,9 @@ ds620_GetTemperature(int address)
 {
 	return ds620_ReadRegister16(DS620_TEMP_MSB);	
 }
+
+unsigned short
+ds620_GetConfiguration(int address)
+{
+	return ds620_ReadRegister16(DS620_CONFIG_MSG);
+}

@@ -52,6 +52,19 @@
 
 /** @} */
 
+/** The configuration register */
+typedef union
+{
+	struct
+	{
+		unsigned foo:1;
+		unsigned bar:1;
+		unsigned baz:6;
+		unsigned jar:8;
+	} values;
+	short raw;
+} ds620_config;
+
 /**
  * Print a temperature value using printf
  *
@@ -78,8 +91,14 @@ unsigned short ds620_ReadRegister16(int address, int reg);
  */
 signed short ds620_ToDecimal(short reading);
 /**
- * Print a temperature value using printf.
+ * Get the current temperature register as a 16-bit value.
  *
  * @param address	The sensor address (0-7)
  */
 unsigned short ds620_GetTemperature(int address);
+/**
+ * Get the internal configuration as a 16-bit value.
+ *
+ * @param address	The sensor address (0-7)
+ */
+unsigned short ds620_GetConfiguration(int address);
