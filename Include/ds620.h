@@ -62,7 +62,7 @@ typedef union
 		unsigned baz:6;
 		unsigned jar:8;
 	} values;
-	short raw;
+	unsigned short raw;
 } ds620_config;
 
 /**
