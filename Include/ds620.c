@@ -16,6 +16,7 @@
 
 #include "ds620.h"
 #include "i2c.h"
+#include "delay.h"
 
 // Print the current temperature using printf
 //
@@ -26,7 +27,7 @@ ds620_PrintTemperature(short reading)
 	//int fraction[] = { 
 
 	// Print the decimal portion
-	printf("%d.\r\n", reading >> 7);
+	//printf("%d.\r\n", reading >> 7);
 }
 
 // Return the whole number part
@@ -93,11 +94,13 @@ ds620_ReadRegister16(int address, int reg)
 unsigned short
 ds620_GetTemperature(int address)
 {
-	return ds620_ReadRegister16(DS620_TEMP_MSB);	
+	return ds620_ReadRegister16(address, DS620_TEMP_MSB);	
 }
 
-unsigned short
+ds620_config 
 ds620_GetConfiguration(int address)
 {
-	return ds620_ReadRegister16(DS620_CONFIG_MSG);
+	ds620_config r;
+	r.value = ds620_ReadRegister16(address, DS620_CONFIG_MSB);
+	return r;
 }

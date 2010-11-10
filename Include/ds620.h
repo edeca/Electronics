@@ -40,8 +40,14 @@
  */
 #define DS620_ADDRESS_MASK 0b10010000
 
-/** The start conversion command */
-#define DS620_START_CONVERT 0b01010001
+/** Start converting temperature command */
+#define DS620_START_CONVERT 0x51
+/** Stop converting temperature command */
+#define DS620_START_CONVERT 0x22
+/** Copy data from EEPROM to SRAM (shadow registers) command */
+#define DS620_START_CONVERT 0xB8
+/** Copy data from SRAM (shadow registers) to EEPROM command */
+#define DS620_START_CONVERT 0x48
 
 /** @defgroup ds620_addresses DS620 internal memory locations
  *  @{
@@ -63,12 +69,24 @@ typedef union
 {
 	struct
 	{
-		unsigned foo:1;
-		unsigned bar:1;
-		unsigned baz:6;
-		unsigned jar:8;
-	} values;
-	unsigned short raw;
+		unsigned DONE:1;
+		unsigned NVB:1;
+		unsigned THF:1;
+		unsigned TLF:1;
+		unsigned R1:1;
+		unsigned R0:1;
+		unsigned AUTOC:1;
+		unsigned ONESHOT:1;
+		unsigned PO2:1;
+		unsigned PO1:1;
+		unsigned A2:1;
+		unsigned A1:1;
+		unsigned A0:1;
+		unsigned USER2:1;
+		unsigned USER1:1;
+		unsigned USER0:1;
+	} bits;
+	unsigned short value;
 } ds620_config;
 
 /**
@@ -107,6 +125,6 @@ unsigned short ds620_GetTemperature(int address);
  *
  * @param address	The sensor address (0-7)
  */
-unsigned short ds620_GetConfiguration(int address);
+ds620_config ds620_GetConfiguration(int address);
 
 #endif
