@@ -95,11 +95,11 @@ typedef union
 		unsigned A1:1;
 		/** Address bit 0, as set by the A0 pin.  Read only. */
 		unsigned A0:1;
-		/* User memory for general purpose storage. */
+		/** User memory for general purpose storage. */
 		unsigned USER2:1;
-		/* User memory for general purpose storage. */
+		/** User memory for general purpose storage. */
 		unsigned USER1:1;
-		/* User memory for general purpose storage. */
+		/** User memory for general purpose storage. */
 		unsigned USER0:1;
 	} bits;
 	unsigned short value;
