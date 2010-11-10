@@ -40,13 +40,13 @@
  */
 #define DS620_ADDRESS_MASK 0b10010000
 
-/** Start converting temperature command */
+/** Start converting temperature command.  In one-shot mode, this triggers a single conversion.  In continuous mode it starts periodic conversion. */
 #define DS620_START_CONVERT 0x51
-/** Stop converting temperature command */
+/** Stop converting temperature command. */
 #define DS620_STOP_CONVERT 0x22
-/** Copy data from EEPROM to SRAM (shadow registers) command */
+/** Copy data from EEPROM to SRAM (shadow registers) command. */
 #define DS620_RECALL_DATA 0xB8
-/** Copy data from SRAM (shadow registers) to EEPROM command */
+/** Copy data from SRAM (shadow registers) to EEPROM command. */
 #define DS620_COPY_DATA 0x48
 
 /** @defgroup ds620_addresses DS620 internal memory locations
@@ -69,21 +69,37 @@ typedef union
 {
 	struct
 	{
+		/** Is conversion finished? 1 = YES, 0 = NO.  Read only. */
 		unsigned DONE:1;
+		/** Is an EEPROM write in progress? 1 = YES, 0 = NO.  Read only. */
 		unsigned NVB:1;
+		/** If set, the temperature has met or exceeded the value set in the TEMP_HIGH register.  Cleared by the user or device reset. */
 		unsigned THF:1;
+		/** If set, the temperature has met or fallen below the value set in the TEMP_LOW register.  Cleared by the user or device reset. */
 		unsigned TLF:1;
+		/** Used to set conversion resolution */
 		unsigned R1:1;
+		/** Used to set conversion resolution */
 		unsigned R0:1;
+		/** Should the DS620 power up converting? 1 = YES, 0 = NO. */
 		unsigned AUTOC:1;
+		/** Conversion mode: 1 = One shot mode, 0 = Continuous mode. */
 		unsigned ONESHOT:1;
+		/** Configures thermostat mode for the PO pin.  See datasheet. */
 		unsigned PO2:1;
+		/** Configures thermostat mode for the PO pin.  See datasheet. */
 		unsigned PO1:1;
+		/** Address bit 2, as set by the A2 pin.  Read only. */
 		unsigned A2:1;
+		/** Address bit 1, as set by the A1 pin.  Read only. */
 		unsigned A1:1;
+		/** Address bit 0, as set by the A0 pin.  Read only. */
 		unsigned A0:1;
+		/* User memory for general purpose storage. */
 		unsigned USER2:1;
+		/* User memory for general purpose storage. */
 		unsigned USER1:1;
+		/* User memory for general purpose storage. */
 		unsigned USER0:1;
 	} bits;
 	unsigned short value;
