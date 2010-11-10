@@ -43,11 +43,11 @@
 /** Start converting temperature command */
 #define DS620_START_CONVERT 0x51
 /** Stop converting temperature command */
-#define DS620_START_CONVERT 0x22
+#define DS620_STOP_CONVERT 0x22
 /** Copy data from EEPROM to SRAM (shadow registers) command */
-#define DS620_START_CONVERT 0xB8
+#define DS620_RECALL_DATA 0xB8
 /** Copy data from SRAM (shadow registers) to EEPROM command */
-#define DS620_START_CONVERT 0x48
+#define DS620_COPY_DATA 0x48
 
 /** @defgroup ds620_addresses DS620 internal memory locations
  *  @{
