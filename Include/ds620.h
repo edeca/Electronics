@@ -106,7 +106,14 @@ typedef union
 } ds620_config;
 
 /**
- * Print a temperature value using printf
+ * Convert a 3 byte address to the correct I2C address.
+ *
+ * @param address  A number between 0 and 7
+ * @return The I2C bus address of this device
+ */
+int _ds620_GetI2CAddress(int address);
+/**
+ * Print a temperature value using printf.
  *
  * @param reading A 16-bit value from the sensor
  */
@@ -121,6 +128,24 @@ void ds620_PrintTemperature(short reading);
  * @param reg		The internal register
  */
 unsigned short ds620_ReadRegister16(int address, int reg);
+/**
+ * Read a 16-bit register.
+ *
+ * This function writes two adjacent bytes to the SRAM of the 
+ * DS620.  In order to save changes to EEPROM, the function 
+ * ds620_CopyData should be called.
+ *
+ * @param address 	The sensor address (0-7)
+ * @param reg		The internal register
+ * @param data		The data to be written
+ */
+void ds620_WriteRegister16(int address, int reg, unsigned short data);
+/**
+ * Copy data from SRAM (shadow registers) to EEPROM.
+ *
+ * @param address 	The sensor address (0-7)
+ */
+void ds620_CopyData(int address);
 /**
  * Retrieve the decimal portion of the sensor reading.
  *

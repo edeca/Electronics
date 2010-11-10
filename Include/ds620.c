@@ -18,9 +18,17 @@
 #include "i2c.h"
 #include "delay.h"
 
-// Print the current temperature using printf
-//
-// Warning: this takes huge amounts of memory
+int 
+_ds620_GetI2CAddress(int address)
+{
+	// Lowest three bits are the address, shift left one
+	// to allow for I2C R/W bit
+	address &= 0b00000111;
+	address <<= 1;
+	address |= DS620_ADDRESS_MASK;
+	return address;
+}
+
 void
 ds620_PrintTemperature(short reading)
 {
@@ -30,7 +38,21 @@ ds620_PrintTemperature(short reading)
 	//printf("%d.\r\n", reading >> 7);
 }
 
-// Return the whole number part
+void 
+ds620_CopyData(int address)
+{
+	// Copy data from SRAM to EEPROM
+	i2c_Start();
+	i2c_WriteTo(_ds620_GetI2CAddress(address));
+
+	/**
+	 * @todo We must be in continuous conversion mode for this to work, so backup the config register, switch to continuous mode then restore after.
+     */
+
+	i2c_PutByte(DS620_COPY_DATA);
+	i2c_Stop();
+}
+
 signed short
 ds620_ToDecimal(short reading)
 {
@@ -45,29 +67,29 @@ ds620_ToDecimal(short reading)
 	return decimal;
 }
 
+void 
+ds620_WriteRegister16(int address, int reg, unsigned short data)
+{
+	unsigned short value;
+
+	// Load the DS620 with the correct register address and write
+	// 2 bytes, MSB first.
+	i2c_Start();
+	i2c_WriteTo(_ds620_GetI2CAddress(address));
+	i2c_PutByte(reg);
+	i2c_PutByte((int)data >> 8);
+	i2c_PutByte((int)data & 0xFF);
+	i2c_Stop();
+}
+
 unsigned short
 ds620_ReadRegister16(int address, int reg) 
 {
 	unsigned short value;
-
-	// Lowest three bits are the address, shift left one
-	// to allow for I2C R/W bit
-	address &= 0b00000111;
-	address <<= 1;
-	address |= DS620_ADDRESS_MASK;
 	
-	// Send the start conversion command (one-shot mode)
-	i2c_Start();
-	i2c_WriteTo(address);
-	i2c_PutByte(DS620_START_CONVERT);
-	i2c_Stop();
-
-	// TODO: How long do we really need to wait here?
-	DelayMs(50);
-
 	// Now start reading from the MSB register
 	i2c_Start();
-	i2c_WriteTo(address);
+	i2c_WriteTo(_ds620_GetI2CAddress(address));
 	i2c_PutByte(reg);
 
 	// i2c bus "restart", switch into read mode
@@ -94,6 +116,15 @@ ds620_ReadRegister16(int address, int reg)
 unsigned short
 ds620_GetTemperature(int address)
 {
+	// Send the start conversion command (one-shot mode)
+	i2c_Start();
+	i2c_WriteTo(_ds620_GetI2CAddress(address));
+	i2c_PutByte(DS620_START_CONVERT);
+	i2c_Stop();
+
+	// TODO: How long do we really need to wait here?
+	DelayMs(50);
+
 	return ds620_ReadRegister16(address, DS620_TEMP_MSB);	
 }
 
