@@ -18,6 +18,9 @@
  * @todo Add functions to allow storage/retrieval of data in the user registers
  */
 
+#ifndef _DS620_H
+#define _DS620_H
+
 /* 
  * User definable settings
  */
@@ -105,3 +108,5 @@ unsigned short ds620_GetTemperature(int address);
  * @param address	The sensor address (0-7)
  */
 unsigned short ds620_GetConfiguration(int address);
+
+#endif
