@@ -16,6 +16,7 @@
  * @endcode
  *
  * @todo Add a function to set continuous or one-shot mode
+ * @todo Add a function to set thermostat trip points
  */
 
 #ifndef _DS620_H
