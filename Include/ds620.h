@@ -3,6 +3,7 @@
  * @author David <david@edeca.net>
  * @date   November, 2010
  * @brief  Header for DS620 temperature sensor library.
+ * @sa     <a href="http://datasheets.maxim-ic.com/en/ds/DS620.pdf">DS620 datasheet</a>
  * @details
  *
  * A library for accessing the DS620 temperature sensor, using i2c.
