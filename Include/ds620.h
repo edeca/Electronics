@@ -16,7 +16,6 @@
  * @endcode
  *
  * @todo Add a function to set continuous or one-shot mode
- * @todo Add functions to allow storage/retrieval of data in the user registers
  */
 
 #ifndef _DS620_H
@@ -62,6 +61,17 @@
 #define DS620_CONFIG_MSB 0xAC
 /** Internal configuration register (LSB) */
 #define DS620_CONFIG_LSB 0xAD
+
+/** User register, can be used for general purpose data storage */
+#define DS620_USER1 0xA4
+/** User register, can be used for general purpose data storage */
+#define DS620_USER2 0xA5
+/** User register, can be used for general purpose data storage */
+#define DS620_USER3 0xA6
+/** User register, can be used for general purpose data storage */
+#define DS620_USER4 0xA7
+
+
 
 /** @} */
 
