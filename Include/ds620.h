@@ -141,7 +141,7 @@ void ds620_PrintTemperature(short reading);
  */
 unsigned short ds620_ReadRegister16(int address, int reg);
 /**
- * Read a 16-bit register.
+ * Write a 16-bit register.
  *
  * This function writes two adjacent bytes to the SRAM of the 
  * DS620.  In order to save changes to EEPROM, the function 
