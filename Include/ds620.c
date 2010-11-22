@@ -49,7 +49,25 @@ ds620_CopyData(int address)
 	 * @todo We must be in continuous conversion mode for this to work, so backup the config register, switch to continuous mode then restore after.
      */
 
+	// Generate another start condition & send address
+	// Switch to continuous conversion mode
+
+	// Generate another start condition & send address
+	// Send start convert command
+
+	// Generate another start condition & send address
+	// Put back in 1-shot mode (if required)
+
+	// Generate another start condition & send address
+	// Send COPY DATA command
 	i2c_PutByte(DS620_COPY_DATA);
+
+	// Wait 10ms (or check NVB in config register?)
+
+	// Generate another start condition & send address
+	// Stop conversion
+
+	// Stop i2c communication
 	i2c_Stop();
 }
 

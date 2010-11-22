@@ -153,7 +153,13 @@ unsigned short ds620_ReadRegister16(int address, int reg);
  */
 void ds620_WriteRegister16(int address, int reg, unsigned short data);
 /**
- * Copy data from SRAM (shadow registers) to EEPROM.
+ * Copy data from SRAM (shadow registers) to EEPROM.  See datasheet
+ * section "COPYING TO EEPROM COMMAND SEQUENCE".
+ *
+ * Note that this will start converting temperature and temporarily
+ * place the sensor in continuous mode.  After copying, conversion
+ * will be disabled.  It is up to the user to reinstate continuous
+ * conversion if required.
  *
  * @param address 	The sensor address (0-7)
  */
