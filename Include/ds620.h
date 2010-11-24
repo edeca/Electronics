@@ -175,6 +175,10 @@ void ds620_CopyData(int address);
 signed short ds620_ToDecimal(short reading);
 /**
  * Get the current temperature register as a 16-bit value.
+ * 
+ * First 9 bits of return value are a twos-complement signed
+ * integer.  The next 4 bits depend on the configured resolution.
+ * The last 3 bits are always zero.
  *
  * @param address	The sensor address (0-7)
  */
@@ -185,5 +189,27 @@ unsigned short ds620_GetTemperature(int address);
  * @param address	The sensor address (0-7)
  */
 ds620_config ds620_GetConfiguration(int address);
+/**
+ * Set the internal configuration.  To save it for usage after
+ * a power cycle, use ds620_CopyData().
+ *
+ * @param address	The sensor address (0-7)
+ * @param config	The new configuration
+ */
+void ds620_SetConfiguration(int address, ds620_config config);
+/**
+ * In one-shot mode, intiate a single conversion.  In continuous
+ * mode, start automatic conversions.  See ds620_StopConversion
+ * for continous mode.
+ *
+ * @param address	The sensor address (0-7)
+ */
+void ds620_StartConversion(int address);
+/**
+ * Stop automatic conversions, applicable only in continuous mode.
+ *
+ * @param address	The sensor address (0-7)
+ */
+void ds620_StopConversion(int address);
 
 #endif

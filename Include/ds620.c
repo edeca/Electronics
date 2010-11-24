@@ -41,34 +41,37 @@ ds620_PrintTemperature(short reading)
 void 
 ds620_CopyData(int address)
 {
-	// Copy data from SRAM to EEPROM
-	i2c_Start();
-	i2c_WriteTo(_ds620_GetI2CAddress(address));
-
-	/**
-	 * @todo We must be in continuous conversion mode for this to work, so backup the config register, switch to continuous mode then restore after.
-     */
-
-	// Generate another start condition & send address
-	// Switch to continuous conversion mode
-
+	// Retrieve the current configuration, so we can restore
+	// it later if required
+	ds620_config orig_cfg = ds620_GetConfiguration(address);
+	
+	// Switch to continuous conversion mode temporarily, required for
+	// the EEPROM copy process
+	ds620_config tmp_cfg = orig_cfg;
+	tmp_cfg.bits.ONESHOT = 0;
+	ds620_SetConfiguration(address, tmp_cfg);
+	
 	// Generate another start condition & send address
 	// Send start convert command
-
-	// Generate another start condition & send address
-	// Put back in 1-shot mode (if required)
-
-	// Generate another start condition & send address
-	// Send COPY DATA command
+	ds620_StartConversion(address);
+	
+	// Restore 1-shot mode (if required)
+	if (orig_cfg.bits.ONESHOT == 1) {
+		ds620_SetConfiguration(address, orig_cfg);
+	}
+	
+	// Send the command to start copying from SRAM to EEPROM
+	i2c_Start();
+	i2c_WriteTo(_ds620_GetI2CAddress(address));
 	i2c_PutByte(DS620_COPY_DATA);
 
-	// Wait 10ms (or check NVB in config register?)
+	// Wait 10ms for copy to happen (alternatively, we could 
+	// check the NVB bit in the configuration)
+	// register.
+	DelayMs(10);
 
-	// Generate another start condition & send address
-	// Stop conversion
-
-	// Stop i2c communication
-	i2c_Stop();
+	// Stop automatic conversion
+	ds620_StopConversion(address);
 }
 
 signed short
@@ -152,4 +155,29 @@ ds620_GetConfiguration(int address)
 	ds620_config r;
 	r.value = ds620_ReadRegister16(address, DS620_CONFIG_MSB);
 	return r;
+}
+
+void
+ds620_SetConfiguration(int address, ds620_config config)
+{
+	ds620_WriteRegister16(address, DS620_CONFIG_MSB, config.value);
+}
+
+void 
+ds620_StartConversion(int address)
+{
+	i2c_Start();
+	i2c_WriteTo(address);
+	i2c_PutByte(DS620_START_CONVERT);
+	i2c_Stop();
+}
+
+
+void 
+ds620_StopConversion(int address)
+{
+	i2c_Start();
+	i2c_WriteTo(address);
+	i2c_PutByte(DS620_STOP_CONVERT);
+	i2c_Stop();
 }
