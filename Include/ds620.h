@@ -114,10 +114,12 @@ typedef union
 } ds620_config;
 
 /**
+ * @internal
  * Convert a 3 byte address to the correct I2C address.
  *
  * @param address  The sensor address (between 0 and 7)
  * @return The I2C bus address of this device
+ * @endinternal
  */
 int _ds620_GetI2CAddress(int address);
 /**
