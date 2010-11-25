@@ -116,7 +116,7 @@ typedef union
 /**
  * Convert a 3 byte address to the correct I2C address.
  *
- * @param address  A number between 0 and 7
+ * @param address  The sensor address (between 0 and 7)
  * @return The I2C bus address of this device
  */
 int _ds620_GetI2CAddress(int address);
