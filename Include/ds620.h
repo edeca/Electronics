@@ -33,11 +33,7 @@
  */
 
 /** 
- * The I2C address of the DS620 
- *
- *  0b1001        - fixed
- *        AAA     - 3 address bits
- *           x    - I2C R/W bit
+ * Used to determine the I2C address of the DS620.  First 4 bits are fixed, followed by 3 bit sensor ID then the I2C R/W bit.
  */
 #define DS620_ADDRESS_MASK 0b10010000
 
