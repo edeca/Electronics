@@ -145,7 +145,7 @@ unsigned short ds620_ReadRegister16(int address, int reg);
  *
  * This function writes two adjacent bytes to the SRAM of the 
  * DS620.  In order to save changes to EEPROM, the function 
- * ds620_CopyData should be called.
+ * ds620_CopyData() should be called.
  *
  * @param address 	The sensor address (0-7)
  * @param reg		The internal register
@@ -199,8 +199,8 @@ ds620_config ds620_GetConfiguration(int address);
 void ds620_SetConfiguration(int address, ds620_config config);
 /**
  * In one-shot mode, intiate a single conversion.  In continuous
- * mode, start automatic conversions.  See ds620_StopConversion
- * for continous mode.
+ * mode, start automatic conversions.  See ds620_StopConversion()
+ * for continuous mode.
  *
  * @param address	The sensor address (0-7)
  */
