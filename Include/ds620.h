@@ -17,6 +17,8 @@
  *
  * @todo Add a function to set continuous or one-shot mode
  * @todo Add a function to set thermostat trip points
+ * @todo Add code to set ADC resolution
+ * @todo Add function to return portion of temperature after decimal point
  */
 
 #ifndef _DS620_H
