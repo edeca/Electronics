@@ -89,10 +89,41 @@ ds620_ToDecimal(short reading)
 }
 
 void 
+ds620_WriteRegister8(int address, int reg, int data)
+{
+	// Load the DS620 with the correct register address and write
+	// 2 bytes, MSB first.
+	i2c_Start();
+	i2c_WriteTo(_ds620_GetI2CAddress(address));
+	i2c_PutByte(reg);
+	i2c_PutByte(data);
+	i2c_Stop();
+}
+
+unsigned int
+ds620_ReadRegister8(int address, int reg) 
+{
+	unsigned int value;
+	
+	// Now start reading from the MSB register
+	i2c_Start();
+	i2c_WriteTo(_ds620_GetI2CAddress(address));
+	i2c_PutByte(reg);
+
+	// i2c bus "restart", switch into read mode
+	i2c_ReadFrom(_ds620_GetI2CAddress(address));
+
+	// Read 2 bytes, the MSB then LSB
+	value = i2c_GetByte(I2C_LAST);
+
+	i2c_Stop();
+		
+	return value;
+}
+
+void 
 ds620_WriteRegister16(int address, int reg, unsigned short data)
 {
-	unsigned short value;
-
 	// Load the DS620 with the correct register address and write
 	// 2 bytes, MSB first.
 	i2c_Start();
@@ -118,7 +149,7 @@ ds620_ReadRegister16(int address, int reg)
 
 	// Read 2 bytes, the MSB then LSB
 	value = i2c_GetByte(I2C_MORE) << 8;
-	value |= i2c_GetByte(I2C_MORE);
+	value |= i2c_GetByte(I2C_LAST);
 
 	i2c_Stop();
 		

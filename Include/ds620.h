@@ -50,6 +50,14 @@
  *  @{
  */
 
+/** Thermostat upper trip-point (MSB) */
+#define DS620_TH_MSB 0xA0
+/** Thermostat upper trip-point (LSB) */
+#define DS620_TH_LSB 0xA1
+/** Thermostat lower trip-point (MSB) */
+#define DS620_TL_MSB 0xA2
+/** Thermostat lower trip-point (LSB) */
+#define DS620_TL_LSB 0xA3
 /** Current temperature (MSB) */
 #define DS620_TEMP_MSB 0xAA
 /** Current temperature (LSB) */
@@ -128,6 +136,28 @@ int _ds620_GetI2CAddress(int address);
  * @param reading A 16-bit value from the sensor
  */
 void ds620_PrintTemperature(short reading);
+/**
+ * Read an 8-bit register.
+ *
+ * This function retrieves one bytes from the DS620.
+ *
+ * @param address 	The sensor address (0-7)
+ * @param reg		The internal register
+ */
+unsigned int ds620_ReadRegister8(int address, int reg);
+/**
+ * Write an 8-bit register.
+ *
+ * This function writes one byte to the SRAM of the 
+ * DS620.  In order to save changes to EEPROM, the function 
+ * ds620_CopyData() should be called.
+ *
+ * @param address 	The sensor address (0-7)
+ * @param reg		The internal register
+ * @param data		The data to be written
+ */
+void ds620_WriteRegister8(int address, int reg, int data);
+
 /**
  * Read a 16-bit register.
  *
