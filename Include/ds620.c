@@ -114,7 +114,7 @@ ds620_ReadRegister16(int address, int reg)
 	i2c_PutByte(reg);
 
 	// i2c bus "restart", switch into read mode
-	i2c_ReadFrom(address);
+	i2c_ReadFrom(_ds620_GetI2CAddress(address));
 
 	// Read 2 bytes, the MSB then LSB
 	value = i2c_GetByte(I2C_MORE) << 8;
