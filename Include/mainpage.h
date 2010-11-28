@@ -8,6 +8,8 @@
 
 A collection of code for PIC microcontroller electronics, mainly written for use with HI-TECH PICC18.
 
+The source code repository may be browsed at https://github.com/edeca/Electronics
+
 <hr>
 @section license License
 Unless otherwise stated, all code is released under the BSD license below.
