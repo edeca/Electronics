@@ -59,10 +59,10 @@ _sht_ReadByte(char more)
   // TRIS should be set to input when we get here, do we assume it or set it?
   SHT_DAT_TRIS = 1;
   
-  for (int i = 0; i < 8; i++) {
+  // Read 8 bits, MSB first
+  for (int i = 7; i >= 0; i--) {
     SHT_CLK_HIGH();
-    if (SHT_DAT) d |= 0x80;
-    d >>= 1;
+    if (SHT_DAT) d |= (1 << i);
     SHT_CLK_LOW();
   }
  
@@ -143,6 +143,25 @@ _sht_UpdateCRC(unsigned char crc, char data)
   return crc;
 }
 
+sht_status_t 
+sht_ReadStatus()
+{
+  sht_status_t status;
+  status.value = 0;
+
+  if (!sht_Command(SHT_READ_STATUS)) return status;
+
+  printf("didn't return, continuing to read status byte\r\n");
+
+  while(SHT_DAT);
+
+  printf("finished waiting for dat to come low\r\n");
+
+  status.value = _sht_ReadByte(SHT_LAST);
+
+  return status;
+}
+
 unsigned short
 sht_ReadTemperature()
 {
@@ -178,6 +197,8 @@ sht_ReadHumidity()
   //unsigned short timeout = 0xFFFF;
   while(SHT_DAT);
 
+  unsigned char sht_crc = 0;
+
   sht_crc = _sht_UpdateCRC(sht_crc, SHT_MEASURE_HUMIDITY);
 
   // Sensor returns MSB, LSB then CRC
@@ -197,23 +218,50 @@ printf("humidity LSB is %d\r\n", tmp);
 
 printf("sht_Crc is now %d and received CRC was %d\r\n", sht_crc, tmp);
 
+  tmp = _sht_ReverseByte(tmp);
+
+printf("Reversed CRC is %d\r\n", tmp);
+
   /** @todo Check CRC */
 
   return humidity;
 }
 
 void
-sht_WriteStatus(sht_status status)
+sht_WriteStatus(sht_status_t status)
 {
 
 
 }
 
-sht_status
-sht_ReadStatus()
+float
+sht_RelativeHumidity(short raw)
 {
-  sht_status s;
+  float rh = -2.0468 + 0.0367 * raw + -1.5955E-6 * (raw * raw);
+  return rh;
+}
 
-  return s;
+float
+sht_TemperatureInCelcius(short raw)
+{
+  float t = -39.6 + 0.01 * raw;
+  return t;
+}
 
+unsigned char
+_sht_ReverseByte(unsigned char orig)
+{
+  // From the excellent http://graphics.stanford.edu/~seander/bithacks.html
+  unsigned int rev = orig; // r will be reversed bits of v; first get LSB of v
+  //int shift = sizeof(orig) * 8 - 1; // extra shift needed at end
+  int shift = 7;
+
+  for (orig >>= 1; orig; orig >>= 1)
+  {   
+    rev <<= 1;
+    rev |= orig & 1;
+    shift--;
+  }
+  rev <<= shift; // shift when v's highest bits are zero
+  return rev;
 }

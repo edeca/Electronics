@@ -27,6 +27,10 @@
 #define SHT_DAT RB0
 #define SHT_DAT_TRIS TRISB0
 
+/*
+ * Macros for the Sensiron bus protocol
+ */
+
 #define SHT_DAT_HIGH() SHT_DAT_TRIS = 1; SHT_DAT = 0
 #define SHT_DAT_LOW() SHT_DAT_TRIS = 0; SHT_DAT = 0
 #define SHT_CLK_HIGH() SHT_CLK = 1
@@ -38,7 +42,6 @@
 //#define SHT_DAT_TRIS
 /** The pin used for SHT clock line */ 
 //#define SHT_CLK
-
 
 /*
  * Constants, do not edit below this line
@@ -82,8 +85,8 @@ typedef union
     /** ADC resolution. 1 = 8bit RH, 12bit temp, 0 = 12bit RH, 14bit temp. */
     unsigned resolution:1;
   } bits;
-  unsigned int value;
-} sht_status;  
+  unsigned char value;
+} sht_status_t;  
 
 /**
  * Convert a 3 byte address to the correct I2C address.
@@ -98,9 +101,19 @@ unsigned char sht_SoftReset();
 unsigned short sht_ReadHumidity();
 unsigned short sht_ReadTemperature();
 unsigned char sht_Command(char cmd);
-void sht_WriteStatus(sht_status status);
-sht_status sht_ReadStatus();
-
-unsigned char sht_crc = 0;
+void sht_WriteStatus(sht_status_t status);
+sht_status_t sht_ReadStatus();
+/**
+ * Convert a raw reading to a floating point relative humidity
+ * (%RH).
+ *
+ * @warning This will link in the floating point library, which can
+ *          add a considerable overhead.
+ *
+ * @param raw	Raw reading from sht_ReadHumidity()
+ */
+float sht_RelativeHumidity(short raw);
+float sht_TemperatureInCelcius(short raw);
+unsigned char _sht_ReverseByte(unsigned char orig);
 
 #endif
