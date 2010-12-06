@@ -88,7 +88,7 @@ typedef union
 } sht_status_t;  
 
 /**
- * 
+ * Send the Sensiron protocol initiation sequence.
  */
 void _sht_InitiateBus();
 /**
@@ -102,11 +102,54 @@ void _sht_InterfaceReset();
  * @return 1 for success (SHT sensor acknowledged this command), 0 for failure.
  */
 unsigned char sht_SoftReset();
+/**
+ * A generic byte reversing routine.  Used to verify the CRC from the SHT sensor.
+ *
+ * Adapted from http://graphics.stanford.edu/~seander/bithacks.html
+ * 
+ * @param orig The byte to reverse.
+ * @return The original byte in the opposite order.
+ */
+unsigned char _sht_ReverseByte(unsigned char orig);
+/**
+ * Read a single byte from the sensor.
+ * 
+ * @param more Use SHT_MORE if there are subsequent bytes to read or SHT_LAST for the last.
+ * @return The byte as read from the data line.
+ */
 unsigned char _sht_ReadByte(char more);
+/**
+ * Read the current humidity from the sensor.  See sht_RelativeHumidity() for 
+ * converting this to relative humidity.
+ *
+ * @return The current humidity, as a raw value.
+ */
 unsigned short sht_ReadHumidity();
+/**
+ * Read the current temperature from the sensor.  See sht_TemperatureInCelcius() for
+ * conversion to celcius.
+ *
+ * @return The current temperature, as a raw value.
+ */
 unsigned short sht_ReadTemperature();
+/**
+ * Send a command to the SHT device.
+ *
+ * @param cmd The command (see defined SHT_ values).
+ * @return 1 for success (SHT sensor acknowledged this command), 0 for failure.
+ */
 unsigned char sht_Command(char cmd);
+/**
+ * Write to the internal status register of the SHT device.
+ *
+ * @param status A sht_status_t to write to the SHT device.
+ */
 void sht_WriteStatus(sht_status_t status);
+/**
+ * Obtain the internal status register from the SHT device.
+ *
+ * @return A sht_status_t from the SHT device.
+ */
 sht_status_t sht_ReadStatus();
 /**
  * Convert a raw reading to a floating point relative humidity
@@ -116,9 +159,21 @@ sht_status_t sht_ReadStatus();
  *          add a considerable code size overhead.
  *
  * @param raw	Raw reading from sht_ReadHumidity()
+ * @return A floating point relative humidity.
  */
 float sht_RelativeHumidity(short raw);
+/**
+ * Convert a raw reading to a floating point temperature in degrees
+ * celcius.
+ *
+ * Implements the algorithm from the datasheet.
+ *
+ * @warning This will link in the floating point library, which can
+ *          add a considerable code size overhead.
+ *
+ * @param raw	Raw reading from sht_ReadTemperature()
+ * @return A floating point temperature value in degrees C.
+ */
 float sht_TemperatureInCelcius(short raw);
-unsigned char _sht_ReverseByte(unsigned char orig);
 
 #endif
