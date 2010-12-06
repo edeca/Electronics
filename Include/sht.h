@@ -6,8 +6,14 @@
  * @sa     <a href="http://www.sensirion.com/en/pdf/product_information/Datasheet-humidity-sensor-SHT7x.pdf">SHT71 datasheet</a>
  * @details
  *
- * A library for accessing the SHT71 temperature sensor, using Sensiron's custom bus protocol (similar to i2c).
+ * A library for accessing the SHT71 temperature sensor, 
+ * using Sensiron's custom bus protocol (similar to i2c).
  *
+ * The SHT devices are not addressable.  If you want multiple 
+ * devices on the same bus, consider using a switched Vdd 
+ * (perhaps with a small FET) and share the data and clock lines.
+ * If you adopt this approach, allow XXms for sensor startup.
+ * 
  * Example Usage:
  * @code
  *   // TODO
@@ -35,13 +41,6 @@
 #define SHT_DAT_LOW() SHT_DAT_TRIS = 0; SHT_DAT = 0
 #define SHT_CLK_HIGH() SHT_CLK = 1
 #define SHT_CLK_LOW() SHT_CLK = 0
-
-/** The pin used for SHT data line */ 
-//#define SHT_DAT
-/** The TRIS bit for the data pin */ 
-//#define SHT_DAT_TRIS
-/** The pin used for SHT clock line */ 
-//#define SHT_CLK
 
 /*
  * Constants, do not edit below this line
@@ -89,15 +88,21 @@ typedef union
 } sht_status_t;  
 
 /**
- * Convert a 3 byte address to the correct I2C address.
- *
- * @param address  The sensor address (between 0 and 7)
- * @return The I2C bus address of this device
+ * 
  */
 void _sht_InitiateBus();
+/**
+ * Reset communication with the SHT device.  Does not affect the internal status
+ * register.
+ */
 void _sht_InterfaceReset();
-unsigned char _sht_ReadByte(char more);
+/**
+ * Reset the SHT device, including the status register.
+ *
+ * @return 1 for success (SHT sensor acknowledged this command), 0 for failure.
+ */
 unsigned char sht_SoftReset();
+unsigned char _sht_ReadByte(char more);
 unsigned short sht_ReadHumidity();
 unsigned short sht_ReadTemperature();
 unsigned char sht_Command(char cmd);
@@ -108,7 +113,7 @@ sht_status_t sht_ReadStatus();
  * (%RH).
  *
  * @warning This will link in the floating point library, which can
- *          add a considerable overhead.
+ *          add a considerable code size overhead.
  *
  * @param raw	Raw reading from sht_ReadHumidity()
  */

@@ -52,6 +52,12 @@ _sht_InterfaceReset()
 }
 
 unsigned char
+sht_SoftReset()
+{
+  return sht_Command(SHT_SOFT_RESET);
+}
+
+unsigned char
 _sht_ReadByte(char more)
 {
   unsigned int d = 0;
@@ -78,12 +84,6 @@ _sht_ReadByte(char more)
   SHT_DAT_TRIS = 1;
   
   return d;
-}
-
-unsigned char
-sht_SoftReset()
-{
-  return sht_Command(SHT_SOFT_RESET);
 }
 
 unsigned char
