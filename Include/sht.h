@@ -110,7 +110,7 @@ void sht_WriteStatus(sht_status_t status);
 sht_status_t sht_ReadStatus();
 /**
  * Convert a raw reading to a floating point relative humidity
- * (%RH).
+ * (\%RH).
  *
  * @warning This will link in the floating point library, which can
  *          add a considerable code size overhead.
