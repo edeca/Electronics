@@ -166,6 +166,8 @@ unsigned short
 sht_ReadTemperature()
 {
   unsigned short temperature;
+  unsigned char data;
+  unsigned char sht_crc = 0;
   
   if (!sht_Command(SHT_MEASURE_TEMPERATURE)) return 0;
   
@@ -174,12 +176,24 @@ sht_ReadTemperature()
   //unsigned short timeout = 0xFFFF;
   while(SHT_DAT);
 
-  // Sensor returns MSB, LSB then CRC
-  temperature = _sht_ReadByte(SHT_MORE) << 8;
-  temperature |= _sht_ReadByte(SHT_MORE);
-  unsigned char crc = _sht_ReadByte(SHT_LAST);
+  // Initialise CRC with the command byte
+  sht_crc = _sht_UpdateCRC(sht_crc, SHT_MEASURE_TEMPERATURE);
 
-  /** @todo Check CRC */
+  // Sensor returns MSB, LSB then CRC
+  data = _sht_ReadByte(SHT_MORE);
+  sht_crc = _sht_UpdateCRC(sht_crc, data);
+  temperature = data << 8;
+
+  data = _sht_ReadByte(SHT_MORE);
+  sht_crc = _sht_UpdateCRC(sht_crc, data);
+  temperature |= data;
+
+  // Sensor returns CRC reversed
+  data = _sht_ReadByte(SHT_LAST);
+  data = _sht_ReverseByte(data);
+
+  // Check calculated vs. recieved CRC
+  if (sht_crc != data) return 0;
 
   return temperature;
 }
@@ -188,7 +202,8 @@ unsigned short
 sht_ReadHumidity()
 {
   unsigned short humidity;
-  unsigned int tmp;  
+  unsigned char data;  
+  unsigned char sht_crc = 0;
 
   if (!sht_Command(SHT_MEASURE_HUMIDITY)) return 0;
   
@@ -197,32 +212,24 @@ sht_ReadHumidity()
   //unsigned short timeout = 0xFFFF;
   while(SHT_DAT);
 
-  unsigned char sht_crc = 0;
-
+  // Initialise CRC with the command byte
   sht_crc = _sht_UpdateCRC(sht_crc, SHT_MEASURE_HUMIDITY);
 
   // Sensor returns MSB, LSB then CRC
-  tmp = _sht_ReadByte(SHT_MORE);
-  sht_crc = _sht_UpdateCRC(sht_crc, tmp);
-  humidity = tmp << 8;
+  data = _sht_ReadByte(SHT_MORE);
+  sht_crc = _sht_UpdateCRC(sht_crc, data);
+  humidity = data << 8;
 
-printf("humidity MSB is %d\r\n", tmp);
+  data = _sht_ReadByte(SHT_MORE);
+  sht_crc = _sht_UpdateCRC(sht_crc, data);
+  humidity |= data;
 
-  tmp = _sht_ReadByte(SHT_MORE);
-  sht_crc = _sht_UpdateCRC(sht_crc, tmp);
-  humidity |= tmp;
+  // Sensor returns CRC reversed
+  data = _sht_ReadByte(SHT_LAST);
+  data = _sht_ReverseByte(data);
 
-printf("humidity LSB is %d\r\n", tmp);
-
-  tmp = _sht_ReadByte(SHT_LAST);
-
-printf("sht_Crc is now %d and received CRC was %d\r\n", sht_crc, tmp);
-
-  tmp = _sht_ReverseByte(tmp);
-
-printf("Reversed CRC is %d\r\n", tmp);
-
-  /** @todo Check CRC */
+  // Check calculated vs. recieved CRC
+  if (sht_crc != data) return 0;
 
   return humidity;
 }
@@ -230,13 +237,13 @@ printf("Reversed CRC is %d\r\n", tmp);
 void
 sht_WriteStatus(sht_status_t status)
 {
-
-
+  /* @todo Work out the write sequence */
 }
 
 float
 sht_RelativeHumidity(short raw)
 {
+  /* @todo These constants change for different Vdd */
   float rh = -2.0468 + 0.0367 * raw + -1.5955E-6 * (raw * raw);
   return rh;
 }
@@ -244,6 +251,7 @@ sht_RelativeHumidity(short raw)
 float
 sht_TemperatureInCelcius(short raw)
 {
+  /* @todo These constants change for different Vdd */
   float t = -39.6 + 0.01 * raw;
   return t;
 }

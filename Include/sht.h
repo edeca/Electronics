@@ -16,7 +16,14 @@
  * 
  * Example Usage:
  * @code
- *   // TODO
+ *   // Retrieve humidity and convert to RH%.  See warnings about
+ *   // floating point!
+ *   unsigned short humidity_raw = sht_ReadHumidity();
+ *	 float humidity_rh = sht_RelativeHumidity(humidity_raw);
+ *  
+ *   // Retrieve temperature and convert to degrees C.
+ *   unsigned short temp_raw = sht_ReadTemperature();
+ *   float temp_c = sht_TemperatureInCelcius(temp_raw);
  * @endcode
  *
  * @todo Check all timings, 1us is used at present
@@ -122,14 +129,14 @@ unsigned char _sht_ReadByte(char more);
  * Read the current humidity from the sensor.  See sht_RelativeHumidity() for 
  * converting this to relative humidity.
  *
- * @return The current humidity, as a raw value.
+ * @return The current humidity as a raw value or 0 for CRC failure.
  */
 unsigned short sht_ReadHumidity();
 /**
  * Read the current temperature from the sensor.  See sht_TemperatureInCelcius() for
  * conversion to celcius.
  *
- * @return The current temperature, as a raw value.
+ * @return The current temperature as a raw value or 0 for CRC failure.
  */
 unsigned short sht_ReadTemperature();
 /**
