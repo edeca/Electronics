@@ -2,7 +2,7 @@
  * @file   ks0108.h
  * @author David <david@edeca.net>
  * @date   February, 2011
- * @brief  Header for Sensiron SHT temperature/humidity sensor library.
+ * @brief  Header for KS0108 GLCD graphics library.
  * @sa     <a href="http://www.techtoys.com.hk/Displays/JHD12864J/ks0108.pdf">KS0108 datasheet</a>
  * @details
  *
