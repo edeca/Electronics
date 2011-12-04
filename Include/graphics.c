@@ -139,30 +139,6 @@ unsigned char text_width(unsigned char *string, unsigned char *font) {
 	return width - 1;
 }
 
-
-/*
-unsigned char text_width(char *string) {
-	// Loop through the whole string, adding up the width of each character
-	// Allow for the space between characters
-
-	unsigned char width = 0;
-
-	while (*string != 0) {
-		for (int i = 0; i < 7; i++) {
-			if (Font[*string - 32][i] == 0x55) break;
-			width += 1;
-		}
-
-		// Allow for space between letters
-		width += 1;
-		string++;
-	}
-
-	// We don't want a space after the last character
-	return width - 1;
-}
-*/
-
 void draw_rectangle(int x1, int y1, int x2, int y2, char colour)
 {
 	// Top
@@ -189,7 +165,10 @@ void draw_box(int x1, int y1, int x2, int y2, char colour)
 	draw_line(x2, y1 + 1, x2, y2 - 1, colour);
 }
 
-
+// Implementation of Bresenham's line algorithm
+//
+// This code credit Tom Ootjers, originally obtained from: 
+// http://tinyurl.com/czok7vx
 void draw_line(int x1, int y1, int x2, int y2, char colour)
 {
 	int xinc1, yinc1, den, num, numadd, numpixels, curpixel, xinc2, yinc2;
@@ -199,58 +178,58 @@ void draw_line(int x1, int y1, int x2, int y2, char colour)
 	int x = x1;                   	// Start x off at the first pixel
 	int y = y1;                   	// Start y off at the first pixel
 	
-	if (x2 >= x1)             	// The x-values are increasing
+	if (x2 >= x1)	             	// The x-values are increasing
 	{
 	  xinc1 = 1;
 	  xinc2 = 1;
 	}
-	else                      	// The x-values are decreasing
+	else             	         	// The x-values are decreasing
 	{
 	  xinc1 = -1;
 	  xinc2 = -1;
 	}
 	
-	if (y2 >= y1)             	// The y-values are increasing
+	if (y2 >= y1)       	      	// The y-values are increasing
 	{
 	  yinc1 = 1;
 	  yinc2 = 1;
 	}
-	else                      	// The y-values are decreasing
+	else                    	  	// The y-values are decreasing
 	{
 	  yinc1 = -1;
 	  yinc2 = -1;
 	}
 	
-	if (deltax >= deltay)     	// There is at least one x-value for every y-value
+	if (deltax >= deltay)     		// There is at least one x-value for every y-value
 	{
-	  xinc1 = 0;              	// Don't change the x when numerator >= denominator
-	  yinc2 = 0;              	// Don't change the y for every iteration
+	  xinc1 = 0;              		// Don't change the x when numerator >= denominator
+	  yinc2 = 0;              		// Don't change the y for every iteration
 	  den = deltax;
 	  num = deltax / 2;
 	  numadd = deltay;
-	  numpixels = deltax;     	// There are more x-values than y-values
+	  numpixels = deltax;     		// There are more x-values than y-values
 	}
-	else                      	// There is at least one y-value for every x-value
+	else                      		// There is at least one y-value for every x-value
 	{
-	  xinc2 = 0;              	// Don't change the x for every iteration
-	  yinc1 = 0;              	// Don't change the y when numerator >= denominator
+	  xinc2 = 0;              		// Don't change the x for every iteration
+	  yinc1 = 0;              		// Don't change the y when numerator >= denominator
 	  den = deltay;
 	  num = deltay / 2;
 	  numadd = deltax;
-	  numpixels = deltay;     	// There are more y-values than x-values
+	  numpixels = deltay;     		// There are more y-values than x-values
 	}
 	
 	for (curpixel = 0; curpixel <= numpixels; curpixel++)
 	{
-	  glcd_pixel(x, y, colour);         	// Draw the current pixel
-	  num += numadd;          	// Increase the numerator by the top of the fraction
-	  if (num >= den)         	// Check if numerator >= denominator
+	  glcd_pixel(x, y, colour);    	// Draw the current pixel
+	  num += numadd;          		// Increase the numerator by the top of the fraction
+	  if (num >= den)         		// Check if numerator >= denominator
 	  {
-		num -= den;           	// Calculate the new numerator value
-		x += xinc1;           	// Change the x as appropriate
-		y += yinc1;           	// Change the y as appropriate
+		num -= den;           		// Calculate the new numerator value
+		x += xinc1;           		// Change the x as appropriate
+		y += yinc1;           		// Change the y as appropriate
 	  }
-	  x += xinc2;             	// Change the x as appropriate
-	  y += yinc2;             	// Change the y as appropriate
+	  x += xinc2;             		// Change the x as appropriate
+	  y += yinc2;             		// Change the y as appropriate
 	}
 }
