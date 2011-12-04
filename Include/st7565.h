@@ -117,6 +117,9 @@
              to keep the data connection alive) */
 #define	GLCD_CMD_NOP				0b11100011
 
+// Note that read-modify-write mode is not useful with SPI, as it is not possible
+// to read.  Therefore this command is not included.
+
 /**
  * Initialise the screen.  This should be called first.
  */
