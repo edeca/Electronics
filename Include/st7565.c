@@ -10,7 +10,7 @@ void glcd_pixel(unsigned char x, unsigned char y, unsigned char colour) {
 
 	if (x > SCREEN_WIDTH || y > SCREEN_HEIGHT) return;
 
-	// Screen coordinates are 0-63, not 1-64.
+	// Real screen coordinates are 0-63, not 1-64.
 	x -= 1;
 	y -= 1;
 
@@ -27,7 +27,7 @@ void glcd_blank() {
 
 		// Reset column to 0 (the left side)
 		glcd_command(GLCD_CMD_COLUMN_LOWER);
-		glcd_command(GLCD_CMD_COLUMN_UPPER);	
+		glcd_command(GLCD_CMD_COLUMN_UPPER);
 
 		for (int x = 0; x < 128; x++) {
 			glcd_data(0x00);
@@ -37,35 +37,27 @@ void glcd_blank() {
 
 void glcd_refresh() {
 	for (int y = 0; y < 8; y++) {
+		glcd_command(GLCD_CMD_SET_PAGE | y);
 
-	//	for (int moo = 0; moo <= y; moo++) {
-			glcd_command(GLCD_CMD_SET_PAGE | y);
+		// Reset column to 0 (the left side)
+		glcd_command(GLCD_CMD_COLUMN_LOWER);
+		glcd_command(GLCD_CMD_COLUMN_UPPER);
 
-			// Reset column to 0 (the left side)
-			glcd_command(GLCD_CMD_COLUMN_LOWER);
-			glcd_command(GLCD_CMD_COLUMN_UPPER);
-
-
-		//	glcd_data(0xFF);		
-
-			for (int x = 0; x < 128; x++) {
+		for (int x = 0; x < 128; x++) {
 			glcd_data(glcd_buffer[y * 128 + x]);
-			//	glcd_data(0x80);
-			}
-	//	}
+		}
 	}
 }
 
 void glcd_init() {
-	GLCD_VDD = 1;
-	DelayMs(10);
 
 	// Select the chip
 	GLCD_CS1 = 0;
 
 	GLCD_RESET = 0;
 
-	// Datasheet says "wait for power to stabilise" !
+	// Datasheet says "wait for power to stabilise" but gives
+	// no specific time!
 	DelayMs(500);
 
 	GLCD_RESET = 1;
@@ -86,6 +78,7 @@ void glcd_init() {
 	glcd_command(GLCD_CMD_RESISTOR | 0x3);
 
 	// Power control setting (datasheet step 7)
+	// Note: Skipping straight to 0x7 works with my hardware.
 //	glcd_command(GLCD_CMD_POWER_CONTROL | 0x4);
 //	DelayMs(50);
 //	glcd_command(GLCD_CMD_POWER_CONTROL | 0x6);
@@ -100,6 +93,7 @@ void glcd_init() {
 	// Reset start position to the top
 	glcd_command(GLCD_CMD_DISPLAY_START);
 
+	// Unselect the chip
 	GLCD_CS1 = 1;
 }
 
@@ -121,6 +115,7 @@ void glcd_data(unsigned char data) {
 
 		// Pulse SCL
 		GLCD_SCL = 1;
+		// TODO: Check if timings allow us to omit this NOP
 		asm("nop");
 		GLCD_SCL = 0;
 
@@ -150,6 +145,7 @@ void glcd_command(char command) {
 
 		// Pulse SCL
 		GLCD_SCL = 1;
+		// TODO: Check if timings allow us to omit this NOP
 		asm("nop");
 		GLCD_SCL = 0;
 
