@@ -88,16 +88,16 @@
 #define GLCD_CMD_DISPLAY_NORMAL		0b10100110
 #define GLCD_CMD_DISPLAY_REVERSE	0b10100111
 
-#define GLCD_CMD_ADC_NORMAL			0b10100000
-#define GLCD_CMD_ADC_REVERSE		0b10100001
-
 #define GLCD_CMD_BIAS_9				0b10100010
 #define GLCD_CMD_BIAS_7				0b10100011
 
-// COM output scan direction, normal or reversed.
-#define GLCD_CMD_OUTPUT_NORMAL		0b11000000
-#define GLCD_CMD_OUTPUT_REVERSE		0b11001000
+// ADC output direction
+#define GLCD_CMD_HORIZONTAL_NORMAL	0b10100000
+#define GLCD_CMD_HORIZONTAL_REVERSE	0b10100001
 
+// Common output scan direction (normal)
+#define GLCD_CMD_VERTICAL_NORMAL	0b11000000
+#define GLCD_CMD_VERTICAL_REVERSE	0b11001000
 
 #define GLCD_CMD_POWER_CONTROL		0b00101000
 
@@ -152,8 +152,17 @@ void glcd_blank();
  * @param colour 	0 = OFF, any other value = ON
  */
 void glcd_pixel(unsigned char x, unsigned char y, unsigned char colour);
+/** 
+ * Flip the screen in the alternate direction vertically.
+ *
+ * Can be used if the screen is mounted in an enclosure upside
+ * down.
+ */
+void glcd_flip_screen(unsigned char flip);
 
-/** Buffer to hold the current screen contents. */
-unsigned char glcd_buffer[SCREEN_WIDTH * SCREEN_HEIGHT];
+/** Global buffer to hold the current screen contents. */
+unsigned char glcd_buffer[SCREEN_WIDTH * SCREEN_HEIGHT / 8];
+/** Global variable that tracks whether the screen is the "normal" way up. */
+unsigned char glcd_flipped = 0;
 
 #endif // _ST7565_H_
