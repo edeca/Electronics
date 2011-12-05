@@ -29,7 +29,9 @@ void glcd_blank() {
 		glcd_command(GLCD_CMD_COLUMN_LOWER);
 		glcd_command(GLCD_CMD_COLUMN_UPPER);
 
-		for (int x = 0; x < 128; x++) {
+		// We iterate to 132 as the internal buffer is 65*132, not
+		// 64*124.
+		for (int x = 0; x < 132; x++) {
 			glcd_data(0x00);
 		}
 	}
@@ -42,6 +44,15 @@ void glcd_refresh() {
 		// Reset column to 0 (the left side)
 		glcd_command(GLCD_CMD_COLUMN_LOWER);
 		glcd_command(GLCD_CMD_COLUMN_UPPER);
+
+		// The internal memory of the screen is 132*64, we need
+		// to account for this if the display is flipped.
+		if (glcd_flipped) {
+			glcd_data(0x00);
+			glcd_data(0x00);
+			glcd_data(0x00);
+			glcd_data(0x00);
+		}
 
 		for (int x = 0; x < 128; x++) {
 			glcd_data(glcd_buffer[y * 128 + x]);
@@ -68,11 +79,14 @@ void glcd_init() {
 	// Set LCD bias to 1/7th
 	glcd_command(GLCD_CMD_BIAS_7);
 
-	// Select normal ADC
-	glcd_command(GLCD_CMD_ADC_NORMAL);
+	// Horizontal output direction (ADC segment driver selection)
+	glcd_command(GLCD_CMD_HORIZONTAL_NORMAL);
 
-	// Common output mode selection
-	glcd_command(GLCD_CMD_OUTPUT_NORMAL);
+	// Vertical output direction (common output mode selection)
+	glcd_command(GLCD_CMD_VERTICAL_REVERSE);
+
+	// The screen is the "normal" way up
+	glcd_flipped = 0;
 
 	// Set internal resistor
 	glcd_command(GLCD_CMD_RESISTOR | 0x3);
@@ -154,4 +168,40 @@ void glcd_command(char command) {
 
 	// Unselect the chip
 	GLCD_CS1 = 1;
+}
+
+void glcd_flip_screen(unsigned char flip) {
+	if (flip) {
+		glcd_command(GLCD_CMD_HORIZONTAL_NORMAL);
+		glcd_command(GLCD_CMD_VERTICAL_REVERSE);
+		glcd_flipped = 0;
+	} else {
+		glcd_command(GLCD_CMD_HORIZONTAL_REVERSE);
+		glcd_command(GLCD_CMD_VERTICAL_NORMAL);
+		glcd_flipped = 1;
+	}
+}
+
+void glcd_inverse_screen(unsigned char inverse) {
+	if (inverse) {
+		glcd_command(GLCD_CMD_DISPLAY_REVERSE);
+	} else {
+		glcd_command(GLCD_CMD_DISPLAY_NORMAL);
+	}
+}
+
+void glcd_test_card() {
+	unsigned char p = 0xF0;	
+
+	for (int n=1; n<=1024; n++) {
+		glcd_buffer[n - 1] = p;
+
+		if (n % 4 == 0) {
+			unsigned char q = p;
+			p = p << 4;
+			p |= q >> 4;
+		}
+	}
+
+	glcd_refresh();
 }

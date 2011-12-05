@@ -117,9 +117,6 @@
              to keep the data connection alive) */
 #define	GLCD_CMD_NOP				0b11100011
 
-// Note that read-modify-write mode is not useful with SPI, as it is not possible
-// to read.  Therefore this command is not included.
-
 /**
  * Initialise the screen.  This should be called first.
  */
@@ -159,6 +156,20 @@ void glcd_pixel(unsigned char x, unsigned char y, unsigned char colour);
  * down.
  */
 void glcd_flip_screen(unsigned char flip);
+/** 
+ * Inverse the screen, swapping "on" and "off" pixels.
+ *
+ * This does not affect the RAM buffer or the screen memory, the controller
+ * is capable of reversing pixels with a single command.
+ */
+void glcd_inverse_screen(unsigned char inverse);
+/** 
+ * Fill the local RAM buffer with a test pattern and send it to the screen.
+ *
+ * Useful for ensuring that the screen is receiving data correctly.
+ */
+void glcd_test_card();
+
 
 /** Global buffer to hold the current screen contents. */
 unsigned char glcd_buffer[SCREEN_WIDTH * SCREEN_HEIGHT / 8];
