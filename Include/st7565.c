@@ -41,18 +41,15 @@ void glcd_refresh() {
 	for (int y = 0; y < 8; y++) {
 		glcd_command(GLCD_CMD_SET_PAGE | y);
 
-		// Reset column to 0 (the left side)
-		glcd_command(GLCD_CMD_COLUMN_LOWER);
-		glcd_command(GLCD_CMD_COLUMN_UPPER);
-
-		// The internal memory of the screen is 132*64, we need
-		// to account for this if the display is flipped.
+		// Reset column to the left side.  The internal memory of the 
+		// screen is 132*64, we need to account for this if the display 
+		// is flipped.
 		if (glcd_flipped) {
-			glcd_data(0x00);
-			glcd_data(0x00);
-			glcd_data(0x00);
-			glcd_data(0x00);
+			glcd_command(GLCD_CMD_COLUMN_LOWER | 4);
+		} else {
+			glcd_command(GLCD_CMD_COLUMN_LOWER);
 		}
+		glcd_command(GLCD_CMD_COLUMN_UPPER);
 
 		for (int x = 0; x < 128; x++) {
 			glcd_data(glcd_buffer[y * 128 + x]);
