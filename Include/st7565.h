@@ -19,7 +19,7 @@
  * In serial mode it is not possible to read data back from the screen, meaning we
  * need a local array to hold the current data.  For a 128*64 screen, this will require
  * 1KiB of RAM.
- *
+ * 
  * This code has been tested on a PIC 18F26K20 at 64Mhz using the internal PLL.  No
  * adverse effects were noticed at this speed.
  *
@@ -52,6 +52,8 @@
  *    glcd_refresh();
  * @endcode
  *
+ * @note This is a low level library only, with support for setting & clearing pixels.  For text or graphics functions, please see my graphics library.
+ * 
  * @todo Check timings compared to datasheet, supply a max recommended Fosc.
  */
 #ifndef _ST7565_H_
