@@ -73,8 +73,8 @@ void glcd_init() {
 	// Datasheet says max 1ms here
 	//DelayMs(1);
 
-	// Set LCD bias to 1/7th
-	glcd_command(GLCD_CMD_BIAS_7);
+	// Set LCD bias to 1/9th
+	glcd_command(GLCD_CMD_BIAS_9);
 
 	// Horizontal output direction (ADC segment driver selection)
 	glcd_command(GLCD_CMD_HORIZONTAL_NORMAL);
@@ -85,7 +85,8 @@ void glcd_init() {
 	// The screen is the "normal" way up
 	glcd_flipped = 0;
 
-	// Set internal resistor
+	// Set internal resistor.  A suitable middle value is used as
+	// the default.
 	glcd_command(GLCD_CMD_RESISTOR | 0x3);
 
 	// Power control setting (datasheet step 7)
@@ -97,9 +98,10 @@ void glcd_init() {
 	glcd_command(GLCD_CMD_POWER_CONTROL | 0x7);
 //	DelayMs(10);
 
-	// Volume set (brightness control)
+	// Volume set (brightness control).  A middle value is used here
+	// also.
 	glcd_command(GLCD_CMD_VOLUME_MODE);
-	glcd_command(0x08);
+	glcd_command(31);
 
 	// Reset start position to the top
 	glcd_command(GLCD_CMD_DISPLAY_START);
@@ -201,4 +203,12 @@ void glcd_test_card() {
 	}
 
 	glcd_refresh();
+}
+
+void glcd_contrast(char resistor_ratio, char contrast) {
+	if (resistor_ratio > 7 || contrast > 63) return;
+
+	glcd_command(GLCD_CMD_RESISTOR | resistor_ratio);
+	glcd_command(GLCD_CMD_VOLUME_MODE);
+	glcd_command(contrast);
 }

@@ -31,10 +31,9 @@
  *    // Clear the screen's internal memory 
  *    glcd_blank();
  *
- *    // Set the screen's brightness, if required.
- *    glcd_command(GLCD_CMD_RESISTOR | 0x3)
- *    glcd_command(GLCD_CMD_VOLUME_MODE);
- *    glcd_command(0x0A);
+ *    // Set the screen's brightness, if required.  See below for information
+ *    // on how this works.
+ *    glcd_contrast(3, 25);
  * @endcode
  *
  * Example usage (writing to the screen):
@@ -168,10 +167,21 @@ void glcd_inverse_screen(unsigned char inverse);
 /** 
  * Fill the local RAM buffer with a test pattern and send it to the screen.
  *
- * Useful for ensuring that the screen is receiving data correctly.
+ * Useful for ensuring that the screen is receiving data correctly or for 
+ * adjusting contrast.
  */
 void glcd_test_card();
-
+/**
+ * Set the contrast of the screen.  This involves two steps, setting the 
+ * internal resistor ratio (R1:R2) and then the contrast.
+ *
+ * Tip: Find a resistor ratio that works well with the screen and stick to it
+ *      throughout.  Then adjust the contrast dynamically between 0 and 63.
+ *
+ * @param resistor_ratio	Ratio of the internal resistors, from 0-7
+ * @param constrast			Contrast, from 0-63
+ */
+void glcd_contrast(char resistor_ratio, char contrast);
 
 /** Global buffer to hold the current screen contents. */
 unsigned char glcd_buffer[SCREEN_WIDTH * SCREEN_HEIGHT / 8];
