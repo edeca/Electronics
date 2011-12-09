@@ -196,7 +196,7 @@ void glcd_test_card();
  *      throughout.  Then adjust the contrast dynamically between 0 and 63.
  *
  * @param resistor_ratio	Ratio of the internal resistors, from 0-7
- * @param constrast			Contrast, from 0-63
+ * @param contrast			Contrast, from 0-63
  */
 void glcd_contrast(char resistor_ratio, char contrast);
 
