@@ -66,7 +66,7 @@ void glcd_init() {
 
 	// Datasheet says "wait for power to stabilise" but gives
 	// no specific time!
-	DelayMs(500);
+	DelayMs(50);
 
 	GLCD_RESET = 1;
 

@@ -21,7 +21,8 @@
  * 1KiB of RAM.
  * 
  * This code has been tested on a PIC 18F26K20 at 64Mhz using the internal PLL.  No
- * adverse effects were noticed at this speed.
+ * adverse effects were noticed at this speed.  You will need the HiTech delay routines
+ * or an equivalent.
  *
  * Example usage (initialisation):
  * @code
@@ -75,40 +76,56 @@
 /** Screen height in pixels (tested with 64) */
 #define SCREEN_HEIGHT 64
 
-/** Command to turn the display on */
+/** Command: turn the display on */
 #define GLCD_CMD_DISPLAY_ON 		0b10101111
-/** Command to turn the display off */
+/** Command: turn the display off */
 #define GLCD_CMD_DISPLAY_OFF 		0b10101110
 
-/** Sets all points on the screen to normal. */
+/** Command: set all points on the screen to normal. */
 #define GLCD_CMD_ALL_NORMAL			0b10100100
-/** Sets all points on the screen to "on", without affecting the internal screen buffer. */
+/** Command: set all points on the screen to "on", without affecting 
+             the internal screen buffer. */
 #define GLCD_CMD_ALL_ON				0b10100101
 
-// Sets LCD display normal or reverse ????
+/** Command: disable inverse (black pixels on a white background) */
 #define GLCD_CMD_DISPLAY_NORMAL		0b10100110
+/** Command: inverse the screen (white pixels on a black background) */
 #define GLCD_CMD_DISPLAY_REVERSE	0b10100111
 
+/** Command: set LCD bias to 1/9th */
 #define GLCD_CMD_BIAS_9				0b10100010
+/** Command: set LCD bias to 1/7th */
 #define GLCD_CMD_BIAS_7				0b10100011
 
-// ADC output direction
+/** Command: set ADC output direction to normal. */
 #define GLCD_CMD_HORIZONTAL_NORMAL	0b10100000
+/** Command: set ADC output direction reverse (horizontally flipped). 
+             Note that you should use the glcd_flip_screen function so that
+             the width is correctly accounted for. */
 #define GLCD_CMD_HORIZONTAL_REVERSE	0b10100001
 
-// Common output scan direction (normal)
+/** Command: set common output scan direction to normal. */
 #define GLCD_CMD_VERTICAL_NORMAL	0b11000000
+/** Command: set common output scan direction to reversed (vertically flipped). */
 #define GLCD_CMD_VERTICAL_REVERSE	0b11001000
 
+/** Command: select the internal power supply operating mode. */
 #define GLCD_CMD_POWER_CONTROL		0b00101000
 
+/** Command: set internal R1/R2 resistor bias (OR with 0..7) */
 #define GLCD_CMD_RESISTOR			0b00100000
+/** Command: enter volume mode, send this then send another command
+             byte with the contrast (0..63).  The second command
+			 must be sent for the GLCD to exit volume mode. */
 #define GLCD_CMD_VOLUME_MODE		0b10000001
 
 #define GLCD_CMD_DISPLAY_START		0b01000000
 
+/** Command: set the least significant 4 bits of the column address. */
 #define GLCD_CMD_COLUMN_LOWER		0b00000000
+/** Command: set the most significant 4 bits of the column address. */
 #define GLCD_CMD_COLUMN_UPPER		0b00010000
+/** Command: Set the current page (0..7). */
 #define GLCD_CMD_SET_PAGE			0b10110000
 
 /** Command: software reset (note: should be combined with toggling GLCD_RS) */
