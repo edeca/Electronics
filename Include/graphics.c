@@ -5,13 +5,8 @@
 #include "main.h"
 #include "st7565.h"
 
-#include "usart.h"	// DEBUG
-#include <stdio.h>	// DEBUG
-
-// TODO: 
-
-bounding_box_t glcd_string_new(char *string, unsigned char x, unsigned char y, unsigned char *font) {
-	bounding_box_t ret; // = { x, y, 0, y };
+bounding_box_t draw_text(char *string, unsigned char x, unsigned char y, unsigned char *font) {
+	bounding_box_t ret;
 	bounding_box_t tmp;
 
 	ret.x1 = x;
@@ -19,7 +14,7 @@ bounding_box_t glcd_string_new(char *string, unsigned char x, unsigned char y, u
 
 	// BUG: As we move right between chars we don't actually wipe the space
 	while (*string != 0) {
-		tmp = glcd_char_new(*string++, x, y, font);
+		tmp = draw_char(*string++, x, y, font);
 
 		// Leave a single space between characters
 		x = tmp.x2 + 2;
@@ -31,13 +26,10 @@ bounding_box_t glcd_string_new(char *string, unsigned char x, unsigned char y, u
 	return ret;
 }
 
-bounding_box_t glcd_char_new(unsigned char c, unsigned char x, unsigned char y, unsigned char *font) {
+bounding_box_t draw_char(unsigned char c, unsigned char x, unsigned char y, unsigned char *font) {
 	unsigned short pos;
 	unsigned char width, height;
 	bounding_box_t ret;
-//	unsigned char k = 0;
-
-//printf("Called for character %c\r\n", c);
 
 	ret.x1 = x;
 	ret.y1 = y;
@@ -67,8 +59,6 @@ bounding_box_t glcd_char_new(unsigned char c, unsigned char x, unsigned char y, 
 	// Read first byte from this position, this gives letter width
 	width = font[pos];
 
-//printf("letter %c has height %u and width %u, position in array is %u\r\n", c, height, width, pos);
-
 	// Draw left to right
 	unsigned char i;
 	for (i = 0; i < width; i++) {
@@ -96,7 +86,7 @@ bounding_box_t glcd_char_new(unsigned char c, unsigned char x, unsigned char y, 
 }
 
 unsigned char text_height(unsigned char *string, unsigned char *font) {
-	// TODO: Possibly work out the actual pixel height.  For letters with
+	// TODO: Possibly work out the actual pixel height.  Letters with
 	//       descenders (like 'g') are taller than letters without (like 'k')
 
 	// Height is stored in the header
@@ -178,13 +168,11 @@ void draw_line(int x1, int y1, int x2, int y2, char colour)
 	int x = x1;                   	// Start x off at the first pixel
 	int y = y1;                   	// Start y off at the first pixel
 	
-	if (x2 >= x1)	             	// The x-values are increasing
-	{
+	if (x2 >= x1) {             	// The x-values are increasing
 	  xinc1 = 1;
 	  xinc2 = 1;
-	}
-	else             	         	// The x-values are decreasing
-	{
+
+    } else {          	         	// The x-values are decreasing
 	  xinc1 = -1;
 	  xinc2 = -1;
 	}
