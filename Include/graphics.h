@@ -103,6 +103,6 @@ unsigned char text_height(unsigned char *string, unsigned char *font);
  * @param y2 		The y2 position, from 1 - SCREEN_HEIGHT
  * @param colour 	0 = OFF, any other value = ON
  */
-void draw_box(int x1, int y1, int x2, int y2, char colour);
+void draw_line(int x1, int y1, int x2, int y2, char colour);
 
 #endif // _GRAPHICS_H_
