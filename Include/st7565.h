@@ -3,7 +3,6 @@
  * @author David <david@edeca.net>
  * @date   November, 2011
  * @brief  Header for ST7565 graphic LCD library.
- * @license BSD
  * @sa     <a href="http://XXXXX">ST7565 command reference</a>
  * @sa     <a href="http://www.ladyada.net/learn/lcd/st7565.html">Adafruit tutorial</a>
  * @details
@@ -54,8 +53,11 @@
  *    glcd_refresh();
  * @endcode
  *
- * @note This is a low level library only, with support for setting & clearing pixels.  For text or graphics functions, please see my graphics library.
+ * @note This is a low level library only, with support for setting & clearing pixels.  For text 
+ * or graphics functions, please see my graphics library.
  * 
+ * This code is released under the BSD license.  Please see BSD-LICENSE.TXT for more information.
+ *
  * @todo Check timings compared to datasheet, supply a max recommended Fosc.
  */
 #ifndef _ST7565_H_
