@@ -3,6 +3,7 @@
  * @author David <david@edeca.net>
  * @date   November, 2011
  * @brief  Header for ST7565 graphic LCD library.
+ * @license BSD
  * @sa     <a href="http://XXXXX">ST7565 command reference</a>
  * @sa     <a href="http://www.ladyada.net/learn/lcd/st7565.html">Adafruit tutorial</a>
  * @details
@@ -17,8 +18,9 @@
  * modify this.
  *
  * In serial mode it is not possible to read data back from the screen, meaning we
- * need a local array to hold the current data.  For a 128*64 screen, this will require
- * 1KiB of RAM.
+ * need an array to hold the current data.  For a 128*64 screen, this will require
+ * 1KiB of RAM.  We need to know what data is currently on the screen so that we can overlay
+ * new pixels onto it, so must keep a copy in local memory.
  * 
  * This code has been tested on a PIC 18F26K20 at 64Mhz using the internal PLL.  No
  * adverse effects were noticed at this speed.  You will need the HiTech delay routines
