@@ -64,7 +64,7 @@ bounding_box_t draw_char(unsigned char c, unsigned char x, unsigned char y, unsi
  */
 void draw_rectangle(int x1, int y1, int x2, int y2, char colour);
 /**
- * Draw a box with rounded corners.  The same as draw_rectange, but with corners
+ * Draw a box with rounded corners.  The same as draw_rectangle(), but with corners
  * that are not filled.
  *
  * @param x1 		The x1 position, from 1 - SCREEN_WIDTH
