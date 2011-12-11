@@ -21,6 +21,9 @@
  * 1KiB of RAM.  We need to know what data is currently on the screen so that we can overlay
  * new pixels onto it, so must keep a copy in local memory.
  * 
+ * SPI timings have been checked using the MPLAB Simulator, with Vcc of 3.3v it is impossible 
+ * to violate the datasheet guidelines even up to 64Mhz.
+ *
  * This code has been tested on a PIC 18F26K20 at 64Mhz using the internal PLL.  No
  * adverse effects were noticed at this speed.  You will need the HiTech delay routines
  * or an equivalent.

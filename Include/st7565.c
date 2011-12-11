@@ -128,8 +128,6 @@ void glcd_data(unsigned char data) {
 
 		// Pulse SCL
 		GLCD_SCL = 1;
-		// TODO: Check if timings allow us to omit this NOP
-		asm("nop");
 		GLCD_SCL = 0;
 
 		data <<= 1;
@@ -158,8 +156,6 @@ void glcd_command(char command) {
 
 		// Pulse SCL
 		GLCD_SCL = 1;
-		// TODO: Check if timings allow us to omit this NOP
-		asm("nop");
 		GLCD_SCL = 0;
 
 		command <<= 1;
