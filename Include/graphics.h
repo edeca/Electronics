@@ -120,8 +120,8 @@ void draw_line(int x1, int y1, int x2, int y2, char colour);
 /**
  * Draw a circle using an efficient circle algorithm.
  *
- * @param centre_x	The x1 position, from 1 - SCREEN_WIDTH
- * @param centre_y	The x2 position, from 1 - SCREEN_WIDTH
+ * @param centre_x	The x position of the circle centre, from 1 - SCREEN_WIDTH
+ * @param centre_y	The y position of the circle centre, from 1 - SCREEN_HEIGHT
  * @param radius	The circle radius, in pixels
  * @param colour 	0 = OFF, any other value = ON
  */
@@ -132,13 +132,21 @@ void draw_circle(unsigned char centre_x, unsigned char centre_y, unsigned char r
  * This is separate from draw_circle as it will bring in the draw_line function,
  * which may not be desirable for small code footprint.
  *
- * @param centre_x	The x1 position, from 1 - SCREEN_WIDTH
- * @param centre_y	The x2 position, from 1 - SCREEN_WIDTH
+ * @param centre_x	The x position of the circle centre, from 1 - SCREEN_WIDTH
+ * @param centre_y	The y position of the circle centre, from 1 - SCREEN_HEIGHT
  * @param radius	The circle radius, in pixels
  * @param colour 	0 = OFF, any other value = ON
  */
 void draw_filled_circle(unsigned char centre_x, unsigned char centre_y, unsigned char radius, unsigned char colour);
 
+/**
+ * This function must be provided by the underlying graphics driver.  It will
+ * be called by the routines in this library to plot individual pixels.
+ *
+ * @param x			The x position, from 1 - SCREEN_WIDTH
+ * @param y			The y position, from 1 - SCREEN_HEIGHT
+ * @param colour 	0 = OFF, any other value = ON
+ */
 extern void glcd_pixel(unsigned char x, unsigned char y, unsigned char colour);
 
 #endif // _GRAPHICS_H_
