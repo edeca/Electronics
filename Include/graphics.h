@@ -91,6 +91,7 @@ void draw_box(int x1, int y1, int x2, int y2, char colour);
  *
  * @param string	The text to be measured
  * @param font		The font used to render the text
+ * @param spacing	The gap between letters, in pixels
  */
 unsigned char text_width(unsigned char *string, unsigned char *font, unsigned char spacing);
 /**
@@ -102,7 +103,6 @@ unsigned char text_width(unsigned char *string, unsigned char *font, unsigned ch
  *
  * @param string	The text to be measured
  * @param font		The font used to render the text
- * @param spacing	The gap between letters, in pixels
  */
 unsigned char text_height(unsigned char *string, unsigned char *font);
 /**
