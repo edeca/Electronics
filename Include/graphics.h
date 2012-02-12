@@ -18,11 +18,14 @@
  *
  * Example usage:
  * @code
- *    // Draw some text
- *    draw_text("Example string", 10, 10, Tahoma10);
+ *    // Draw some text with spacing 1, at location (10,10)
+ *    draw_text("Example string", 10, 10, Tahoma10, 1);
  *
- *    // Draw some lines
- *    draw_rectangle(1, 1, 50, 50);
+ *    // Draw a rectangle from (1,1) to (50,50)
+ *    draw_rectangle(1, 1, 50, 50, 1);
+ *
+ *    // Draw a circle, centred at (32,32) with radius 10
+ *    draw_circle(32, 32, 10, 1);
  * @endcode
  */
 #ifndef _GRAPHICS_H_
