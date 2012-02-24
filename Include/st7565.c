@@ -21,7 +21,14 @@ void glcd_pixel(unsigned char x, unsigned char y, unsigned char colour) {
 	}
 }
 
-void glcd_blank() {
+void glcd_blank() 
+{
+	// Reset the internal buffer
+	for (int n=0; n<=1023; n++) {
+		glcd_buffer[n] = 0;
+	}
+
+	// Clear the actual screen
 	for (int y = 0; y < 8; y++) {
 		glcd_command(GLCD_CMD_SET_PAGE | y);
 
