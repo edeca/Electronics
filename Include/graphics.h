@@ -8,13 +8,16 @@
  *
  * A graphics library for black and white graphic LCDs.  Supports lines, rectangles and text.
  *
- * Fonts are available separately in header files. 
+ * Fonts are available separately in header files, see the fonts/ directory.
  *
  * This requires a hardware driver for the GLCD that provides a glcd_pixel() routine.  See
  * my ST7565 library for an example.
  *
  * The benefit of this approach is that it can be ported easily to any graphic LCD.  However,
  * speed benefits could be gained by writing routines that draw whole bytes at a time.
+ *
+ * Fonts and graphics can be converted from Windows TTF fonts or images using the muGUI
+ * "Font and Bitmap Generator", which is free.
  *
  * Example usage:
  * @code
