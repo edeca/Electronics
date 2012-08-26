@@ -76,8 +76,10 @@ bounding_box_t draw_char(unsigned char c, unsigned char x, unsigned char y, unsi
 		}
 	}
 
-	//return x + width;
 	ret.x2 = ret.x1 + width - 1;
+	// TODO: Return the actual height drawn, rather than the height of the
+	//		 font.
+	ret.y2 = ret.y1 + height;
 	ret.y2 = ret.y1 + font[FONT_HEADER_HEIGHT];
 
 	return ret;
