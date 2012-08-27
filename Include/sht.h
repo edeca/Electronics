@@ -36,9 +36,9 @@
  * User definable settings
  */
 
-#define SHT_CLK LATB1
-#define SHT_DAT RB0
-#define SHT_DAT_TRIS TRISB0
+#define SHT_CLK LATC0
+#define SHT_DAT PORTCbits.RC1
+#define SHT_DAT_TRIS TRISC1
 
 /*
  * Macros for the Sensiron bus protocol
@@ -160,7 +160,7 @@ void sht_WriteStatus(sht_status_t status);
 sht_status_t sht_ReadStatus();
 /**
  * Convert a raw reading to a floating point relative humidity
- * (\%RH).
+ * (\%RH).  See section 4.1 of the datasheet.
  *
  * @warning This will link in the floating point library, which can
  *          add a considerable code size overhead.
@@ -169,6 +169,19 @@ sht_status_t sht_ReadStatus();
  * @return A floating point relative humidity.
  */
 float sht_RelativeHumidity(short raw);
+/**
+ * Compensate a relative humidity value for temperatures that are
+ * far from 25C.  See section 4.2 of the datasheet.
+ *
+ * @warning This will link in the floating point library, which can
+ *          add a considerable code size overhead.
+ *
+ * @param raw	Raw reading from sht_ReadHumidity()
+ * @param rh	Converted humidity from sht_RelativeHumidity()
+ * @param temp	Converted temperature from from sht_TemperatureInCelcius()
+ * @return A floating point relative humidity.
+ */
+float sht_CompensateHumidity(short raw, float rh, float temp);
 /**
  * Convert a raw reading to a floating point temperature in degrees
  * celcius.
