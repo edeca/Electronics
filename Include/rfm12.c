@@ -1,6 +1,6 @@
-//#include <pic18.h>
 #include <htc.h>
 #include "rfm12.h"
+#include "rfm12-pins.h"
 
 /// ### DEBUG ONLY ###
 #include <stdio.h>
@@ -273,12 +273,16 @@ void rfm12_Handle_Interrupt(void) {
         {
             case RFM12_STATE_RECEIVING:
                 //TODO:							// handle Rx Interrupt
-                printf("INT: RGIT\r\n");
+                printf("INT: FFIT\r\n");
+                while (spi_Command(RFM12_CMD_STATUS_READ) & 0x8000)
+                    printf("Data: %02X\r\n", rfm12_ReadFifo());
+
+                printf("Status after: %u\r\n", spi_Command(RFM12_CMD_STATUS_READ));
                 break;
 
             case RFM12_STATE_TRANSMITTING:
                 //TODO:							// handle Tx interrupt
-                printf("INT: FFIT\r\n");
+                printf("INT: RGIT\r\n");
                 break;
         }
     }
@@ -297,12 +301,12 @@ void rfm12_Handle_Interrupt(void) {
         {
             case RFM12_STATE_RECEIVING:
                 //TODO:						// handle Rx Interrupt
-                printf("INT: RGUR\r\n");
+                printf("INT: FFOV\r\n");
                 break;
 
             case RFM12_STATE_TRANSMITTING:
                 //TODO:						// handle Tx interrupt
-                printf("INT: FFOV\r\n");
+                printf("INT: RGUR\r\n");
                 break;
 
             // If the RFM12 is uninitialised, or TX/RX finished and the blocks

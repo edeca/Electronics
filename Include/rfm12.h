@@ -47,7 +47,12 @@
    
 */  
 
+//#ifndef RFM12_IRQ
+//#error You must declare RFM12_IRQ!
+//#endif
+
 // Required Ports
+/*
 #define RFM12_IRQ	LATB1
 #define RFM12_CS	LATB4
 #define RFM12_SCK	LATB3
@@ -60,6 +65,7 @@
 #define RFM12_SCK_TRIS	TRISB3
 #define RFM12_SDO_TRIS	TRISB2
 #define	RFM12_SDI_TRIS	TRISB5
+*/
 
 ////////////////////////////////////////////////////////////
 // RFM12 SPI CMDs 
