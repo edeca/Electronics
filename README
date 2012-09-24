@@ -3,7 +3,8 @@ Electronics Repository
 David Cannings <david@edeca.net>
 http://edeca.net
 
-Code for PIC microcontroller electronics, mainly in HI-TECH C. 
+Code for PIC microcontroller electronics, mainly in HI-TECH C (should
+be fully compatible with Microchip XC8).
 
 Unless otherwise stated, all code in this repository is covered by
 the BSD license.
