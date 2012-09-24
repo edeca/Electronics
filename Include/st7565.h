@@ -63,26 +63,11 @@
  * This code is released under the BSD license.  Please see BSD-LICENSE.TXT for more information.
  *
  * @todo Check timings compared to datasheet, supply a max recommended Fosc.
+ * @todo Handle different sized screens if appropriate, e.g. 128*32 (some code is still
+ *       fixed to certain screen/page sizes).
  */
 #ifndef _ST7565_H_
 #define _ST7565_H_
-
-// Setup for ST7565R in SPI mode
-/** The chip select pin */
-#define GLCD_CS1 LATB0
-/** The reset pin (this is required and should not be tied high) */
-#define GLCD_RESET LATB1
-/** The A0 pin, which selects command or data mode */
-#define GLCD_A0 LATB2
-/** The clock pin */
-#define GLCD_SCL LATB3
-/** The data pin */
-#define GLCD_SDA LATB4
-
-/** Screen width in pixels (tested with 128) */
-#define SCREEN_WIDTH 128
-/** Screen height in pixels (tested with 64) */
-#define SCREEN_HEIGHT 64
 
 /** Command: turn the display on */
 #define GLCD_CMD_DISPLAY_ON 		0b10101111
@@ -208,8 +193,6 @@ void glcd_test_card();
  */
 void glcd_contrast(char resistor_ratio, char contrast);
 
-/** Global buffer to hold the current screen contents. */
-unsigned char glcd_buffer[SCREEN_WIDTH * SCREEN_HEIGHT / 8];
 /** Global variable that tracks whether the screen is the "normal" way up. */
 unsigned char glcd_flipped = 0;
 

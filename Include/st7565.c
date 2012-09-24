@@ -1,6 +1,12 @@
 #include <htc.h>
+#include "st7565-config.h"
 #include "st7565.h"
 #include "delay.h"
+
+/** Global buffer to hold the current screen contents. */
+// This has to be kept here because the width & height are set in
+// st7565-config.h
+unsigned char glcd_buffer[SCREEN_WIDTH * SCREEN_HEIGHT / 8];
 
 void glcd_pixel(unsigned char x, unsigned char y, unsigned char colour) {
 
@@ -24,7 +30,7 @@ void glcd_pixel(unsigned char x, unsigned char y, unsigned char colour) {
 void glcd_blank() 
 {
 	// Reset the internal buffer
-	for (int n=0; n<=1023; n++) {
+	for (int n=1; n<=(SCREEN_WIDTH * SCREEN_HEIGHT / 8) - 1; n++) {
 		glcd_buffer[n] = 0;
 	}
 
@@ -51,7 +57,15 @@ void glcd_refresh() {
 		// Reset column to the left side.  The internal memory of the 
 		// screen is 132*64, we need to account for this if the display 
 		// is flipped.
-		if (glcd_flipped) {
+                //
+                // Some screens seem to map the internal memory to the screen
+                // pixels differently, the ST7565_REVERSE define allows this to
+                // be controlled if necessary.
+#ifdef ST7565_REVERSE
+                if (!glcd_flipped) {
+#else
+                if (glcd_flipped) {
+#endif
 			glcd_command(GLCD_CMD_COLUMN_LOWER | 4);
 		} else {
 			glcd_command(GLCD_CMD_COLUMN_LOWER);
@@ -195,7 +209,7 @@ void glcd_inverse_screen(unsigned char inverse) {
 void glcd_test_card() {
 	unsigned char p = 0xF0;	
 
-	for (int n=1; n<=1024; n++) {
+	for (int n=1; n<=(SCREEN_WIDTH * SCREEN_HEIGHT / 8); n++) {
 		glcd_buffer[n - 1] = p;
 
 		if (n % 4 == 0) {
