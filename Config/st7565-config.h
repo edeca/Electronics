@@ -17,3 +17,7 @@
 
 /** Define this if your screen is incorrectly shifted by 4 pixels */
 #define ST7565_REVERSE
+
+/** By default we only write pages that have changed.  Undefine this
+    if you want less/faster code at the expense of more SPI operations. */
+#undef ST7565_DIRTY_PAGES 1
