@@ -6,5 +6,7 @@ http://edeca.net
 Code for PIC microcontroller electronics, mainly in HI-TECH C (should
 be fully compatible with Microchip XC8).
 
+Automatically generated documentation at: http://edeca.net/electronics/library-docs/html/
+
 Unless otherwise stated, all code in this repository is covered by
 the BSD license.
