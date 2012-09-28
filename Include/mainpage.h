@@ -6,7 +6,7 @@
 
 @section intro Introduction
 
-A collection of code for PIC microcontroller electronics, mainly written for use with HI-TECH PICC18.
+A collection of code for PIC microcontroller electronics, mainly written for use with HI-TECH PICC18 or Microchip XC8.
 
 The source code repository may be browsed at https://github.com/edeca/Electronics
 
@@ -14,7 +14,7 @@ The source code repository may be browsed at https://github.com/edeca/Electronic
 @section license License
 Unless otherwise stated, all code is released under the BSD license below.
 
-Copyright (c) 2010, David Cannings
+Copyright (c) 2010-2012, David Cannings
 
 All rights reserved.
 
