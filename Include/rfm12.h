@@ -642,18 +642,20 @@ typedef enum
  Most of the configurable bits of the RFM12 chip are mapped
  into this structure
  ---------------------------------------------------------*/
-struct _rfm12_t {
+/*struct _rfm12_t {
 	// State
 	RFM12_STATE 	state;			// current state of tranceiver
 	unsigned char 	channel;			// current channel
 	
-	unsigned char 	buffer[32];			// tx/rx buffer
+	unsigned char 	buffer[64];			// tx/rx buffer
 	unsigned char 	txrx_pointer;
 	unsigned char 	txrx_counter;
 	
 	unsigned int 	status;				// Readonly - Status register of RFM12
+        unsigned char   data_recv;
 };
 typedef struct _rfm12_t rfm12_t;
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -672,10 +674,10 @@ void rfm12_EnableRx(void);				// Enables Receiver circuit
 void rfm12_DisableTx(void);				// Disables Transmitter
 void rfm12_DisableRx(void);				// Disables Receiver
 
-unsigned char rfm12_isReady(void);		// Waits until rfm12 is ready (Tx/Rx) with timeout
+unsigned char rfm12_isReady(void);                      // Waits until rfm12 is ready (Tx/Rx) with timeout
 void rfm12_WaitReady(void);				// Waits until rfm12 is ready (Tx/Rx) without timeout
 
-void rfm12_Init_Buffer(void);			// Initialiase the Tx/Rx Buffer
+void rfm12_Init_Buffer(void);                           // Initialiase the Tx/Rx Buffer
 void rfm12_Load_Byte(unsigned char data);		// Load a byte into Tx Buffer
 unsigned char rfm12_Read_Buffer(unsigned char index);	// reads byte from buffer
 void rfm12_Tx_Byte(unsigned char data);			// Transmit a single byte
@@ -705,6 +707,12 @@ void rfm12_Init(void);
 
 /* TODO -> Move to rfm12.c after debugging finished */
 // Global variable to this function, contains all the settings
-volatile rfm12_t rfm12_conf;
+//volatile rfm12_t rfm12_conf;
+volatile RFM12_STATE rfm12_state;
+volatile unsigned int rfm12_status;
+volatile unsigned char rfm12_buffer[64];
+volatile unsigned int rfm12_txrx_counter;
+volatile unsigned char rfm12_data_recv;
+volatile unsigned char rfm12_txrx_pointer;
 
 #endif

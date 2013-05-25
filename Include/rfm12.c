@@ -1,9 +1,9 @@
-#include <htc.h>
+#include <xc.h>
 #include "rfm12.h"
 #include "rfm12-pins.h"
 
 /// ### DEBUG ONLY ###
-#include <stdio.h>
+//#include <stdio.h>
 
 /********
  * RFM12 base library
@@ -83,14 +83,18 @@ rfm12_Init(void) {
     //Clock output = 10 MHz
     spi_Command(RFM12_CMD_LOWBAT_CLK | RFM12_XTAL_1000 | RFM12_LOWBAT_22);
 
-    rfm12_conf.status = spi_Command(RFM12_CMD_STATUS_READ);
+    rfm12_status = spi_Command(RFM12_CMD_STATUS_READ);
 
     // Read back the status
     unsigned int ret = 0;
     ret = spi_Command(RFM12_CMD_STATUS_READ);
 
-    asm("nop");
-    asm("nop");
+    rfm12_txrx_counter = 0;
+    rfm12_data_recv = 0;
+    rfm12_txrx_pointer = 0;
+    for (char n = 0; n < 64; n++)
+        rfm12_buffer[n] = 0;
+
 }
 
 /*
@@ -262,75 +266,79 @@ void rfm12_DisableRx(void) {
           LBD  - Low battery detected, powersupply is below the preprogrammed threshold
  */
 void rfm12_Handle_Interrupt(void) {
-    rfm12_conf.status = spi_Command(RFM12_CMD_STATUS_READ); // Updates the config data with latest Status
+    rfm12_status = spi_Command(RFM12_CMD_STATUS_READ); // Updates the config data with latest Status
 
-    printf("RFM12 INTERRUPT HANDLER, status: %u\r\n", rfm12_conf.status);
-
-    if (rfm12_conf.status & RFM12_STATUS_RGIT_FFIT) // Check if ready to Rx or Tx byte
-    {
-        printf("INT: In RGIT/FFIT\r\n");
-        switch (rfm12_conf.state) // Check Tx or Rx
+    // Check if ready to Rx or Tx byte
+    if (rfm12_status & RFM12_STATUS_RGIT_FFIT) {
+        
+        //printf("INT: In RGIT/FFIT\r\n");
+        if (rfm12_state == RFM12_STATE_RECEIVING) // Check Tx or Rx
         {
-            case RFM12_STATE_RECEIVING:
-                //TODO:							// handle Rx Interrupt
-                printf("INT: FFIT\r\n");
-                while (spi_Command(RFM12_CMD_STATUS_READ) & 0x8000)
-                    printf("Data: %02X\r\n", rfm12_ReadFifo());
-
-                printf("Status after: %u\r\n", spi_Command(RFM12_CMD_STATUS_READ));
-                break;
-
-            case RFM12_STATE_TRANSMITTING:
-                //TODO:							// handle Tx interrupt
-                printf("INT: RGIT\r\n");
-                break;
+//LATC3 = 1;
+            //
+            rfm12_buffer[rfm12_txrx_pointer] = rfm12_ReadFifo();
+            rfm12_txrx_pointer++;
+            rfm12_txrx_counter++;
+            // TODO - Set this when the length is correct by checking the length byte
+            if (rfm12_txrx_pointer > 63) {
+                rfm12_txrx_pointer = 0;
+        }
+            rfm12_data_recv = 1;
+        } else {
+            // TX interrupt
+            //printf("INT: RGIT\r\n");
         }
     }
 
-    if (rfm12_conf.status & RFM12_STATUS_POR) // Check Power on reset
+    // FIFO is empty
+    //if (rfm12_conf.status & RFM12_STATUS_FFEM) {
+    //    rfm12_conf.data_recv = 1;
+    //}
+
+    if (rfm12_status & RFM12_STATUS_POR) // Check Power on reset
     {
-        printf("INT: POR\r\n");
+        //printf("INT: POR\r\n");
         //TODO: Set a flag (perhaps rfm12_conf.state to UNINITIALISED?)
     }
 
-    if (rfm12_conf.status & RFM12_STATUS_RGUR_FFOV) // Check RGUR /Check FFOV status bit
+    if (rfm12_status & RFM12_STATUS_RGUR_FFOV) // Check RGUR /Check FFOV status bit
     {
-        printf("In RGUR/FFOV\r\n");
-        
-        switch (rfm12_conf.state) // Check Tx or Rx
+        //printf("In RGUR/FFOV\r\n");
+
+        switch (rfm12_status) // Check Tx or Rx
         {
             case RFM12_STATE_RECEIVING:
                 //TODO:						// handle Rx Interrupt
-                printf("INT: FFOV\r\n");
+                //printf("INT: FFOV\r\n");
                 break;
 
             case RFM12_STATE_TRANSMITTING:
                 //TODO:						// handle Tx interrupt
-                printf("INT: RGUR\r\n");
+                //printf("INT: RGUR\r\n");
                 break;
 
-            // If the RFM12 is uninitialised, or TX/RX finished and the blocks
-            // were turned off, we can still get here.
+                // If the RFM12 is uninitialised, or TX/RX finished and the blocks
+                // were turned off, we can still get here.
             default:
                 break;
         }
     }
 
-    if (rfm12_conf.status & RFM12_STATUS_WKUP) // Check Wakeup status bit
+    if (rfm12_status & RFM12_STATUS_WKUP) // Check Wakeup status bit
     {
-        printf("INT: WKUP\r\n");
+        //printf("INT: WKUP\r\n");
         //TODO: handle Wakeup
     }
 
-    if (rfm12_conf.status & RFM12_STATUS_EXT) // Check EXT Interrupt status bit
+    if (rfm12_status & RFM12_STATUS_EXT) // Check EXT Interrupt status bit
     {
-        printf("INT: EXT\r\n");
+        //printf("INT: EXT\r\n");
         //TODO: handle External
     }
 
-    if (rfm12_conf.status & RFM12_STATUS_LBD) // Check Low battery status bit
+    if (rfm12_status & RFM12_STATUS_LBD) // Check Low battery status bit
     {
-        printf("INT: LBD\r\n");
+        //printf("INT: LBD\r\n");
         //TODO: handle Low Battery
     }
 }
@@ -365,11 +373,10 @@ void rfm12_WaitReady(void) {
 
         // Check RGIT bit of status (first bit)
         // If HIGH then Tx/Rx is ready to accept the next byte
-        if (RFM12_SDI == 1) 
-        { 
+        if (RFM12_SDI == 1) {
             ready = 1;
         }
-        
+
         RFM12_SCK = 0;
         RFM12_CS = 1; // Finished, release RFM12
     }
@@ -392,11 +399,6 @@ unsigned char rfm12_isReady(void) {
 
     char ready = 0;
     unsigned char timeout = 1000;
-
-    // Assumed on entry?
-    //LOW_RFM12_SCK();
-
-    
 
     while ((ready == 0) && (timeout != 0)) {
         RFM12_CS = 0; // !cs LOW - enable
@@ -421,8 +423,8 @@ unsigned char rfm12_isReady(void) {
         loads a byte into the tx buffer
  */
 void rfm12_Load_Byte(unsigned char data) {
-    rfm12_conf.buffer[rfm12_conf.txrx_pointer] = data;
-    rfm12_conf.txrx_pointer++;
+    rfm12_buffer[rfm12_txrx_pointer] = data;
+    rfm12_txrx_pointer++;
 }
 
 /*
@@ -450,19 +452,19 @@ void rfm12_SetBandwidth(unsigned char bandwidth, unsigned char gain, unsigned ch
   
  */
 void rfm12_Tx_Buffer(void) {
-    rfm12_conf.txrx_counter = rfm12_conf.txrx_pointer;
-    rfm12_conf.txrx_pointer = 0;
+    rfm12_txrx_counter = rfm12_txrx_pointer;
+    rfm12_txrx_pointer = 0;
 
-    if (rfm12_conf.txrx_counter == 0) // nothing to send so exit
+    if (rfm12_txrx_counter == 0) // nothing to send so exit
         return;
 
-    while (rfm12_conf.txrx_counter != 0); // tx until the buffer is empty
+    while (rfm12_txrx_counter != 0); // tx until the buffer is empty
     {
-        rfm12_Tx_Byte(rfm12_conf.buffer[rfm12_conf.txrx_pointer++]);
-        rfm12_conf.txrx_counter--;
+        rfm12_Tx_Byte(rfm12_buffer[rfm12_txrx_pointer++]);
+        rfm12_txrx_counter--;
     }
 
-    rfm12_conf.txrx_pointer = 0; // reset the buffer
+    rfm12_txrx_pointer = 0; // reset the buffer
 }
 
 /*
@@ -472,19 +474,19 @@ void rfm12_Tx_Buffer(void) {
  */
 void rfm12_Rx_Data(unsigned char count) {
 
-    rfm12_conf.txrx_counter = count;
-    rfm12_conf.txrx_pointer = 0;
+    rfm12_txrx_counter = count;
+    rfm12_txrx_pointer = 0;
 
-    if (rfm12_conf.txrx_counter == 0) // nothing to receive so exit
+    if (rfm12_txrx_counter == 0) // nothing to receive so exit
         return;
 
-    while (rfm12_conf.txrx_counter != 0); // rx until the we reach the count
+    while (rfm12_txrx_counter != 0); // rx until the we reach the count
     {
-        rfm12_conf.buffer[rfm12_conf.txrx_pointer++] = rfm12_ReadFifo(); // get data from RFM12 fifo
-        rfm12_conf.txrx_counter--;
+        rfm12_buffer[rfm12_txrx_pointer++] = rfm12_ReadFifo(); // get data from RFM12 fifo
+        rfm12_txrx_counter--;
     }
 
-    rfm12_conf.txrx_pointer = 0; // reset the buffer
+    rfm12_txrx_pointer = 0; // reset the buffer
 }
 
 /*
@@ -500,7 +502,7 @@ rfm12_ResetFifo(void) {
 
 void
 rfm12_Init_Buffer(void) {
-    rfm12_conf.txrx_pointer = 0;
+    rfm12_txrx_pointer = 0;
     return;
 }
 
@@ -528,7 +530,7 @@ rfm12_Tx_Byte(unsigned char data) {
  */
 void
 _goto_transmitting_state(void) {
-    rfm12_conf.state = RFM12_STATE_TRANSMITTING;
+    rfm12_state = RFM12_STATE_TRANSMITTING;
 
     //RFM12 - Power Management Command
     //er : Enable receiver chain = 0
@@ -547,7 +549,7 @@ _goto_transmitting_state(void) {
  */
 void
 _goto_receiving_state(void) {
-    rfm12_conf.state = RFM12_STATE_RECEIVING;
+    rfm12_state = RFM12_STATE_RECEIVING;
 
     //RFM12 - Power Management Command
     //er : Enable receiver chain = 1
@@ -566,7 +568,7 @@ _goto_receiving_state(void) {
  */
 void
 _goto_quiettime_state(void) {
-    rfm12_conf.state = RFM12_STATE_QUIETTIME;
+    rfm12_state = RFM12_STATE_QUIETTIME;
     //RFM12 - Power Management Command
     //er : Enable receiver chain = 0
     //ebb : Enable baseband = 0
@@ -585,7 +587,7 @@ _goto_quiettime_state(void) {
  */
 void
 _goto_poweringtransmitter_state(void) {
-    rfm12_conf.state = RFM12_STATE_POWERINGTRANSMITTER;
+    rfm12_state = RFM12_STATE_POWERINGTRANSMITTER;
     //RFM12 - Power Management Command
     //er : Enable receiver chain = 0
     //ebb : Enable baseband = 0
