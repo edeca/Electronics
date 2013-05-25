@@ -4,7 +4,7 @@
  * @date   November, 2011
  * @brief  Header for ST7565 graphic LCD library.
  * @sa     <a href="http://XXXXX">ST7565 command reference</a>
- * @sa     <a href="http://edeca.net/wp/2012/02/the-st7565-display-controller/">My ST7565 introduction blog</a>
+ * @sa     <a href="http://edeca.net/wp/electronics/the-st7565-display-controller/">My ST7565 introduction blog</a>
  * @sa     <a href="http://www.ladyada.net/learn/lcd/st7565.html">Adafruit tutorial</a>
  * @details
  *
