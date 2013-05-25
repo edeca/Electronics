@@ -30,33 +30,33 @@ unsigned char send_packet(unsigned char to_addr, unsigned char *data, unsigned c
 
     rfm12_EnableTx(); // TODO: turn on transmitter
 
-    rfm12_Tx_Byte(0xAA); // Preamble
+    rfm12_Tx_Byte(0xAA);                        // Preamble for RFM12
     rfm12_Tx_Byte(0xAA);
     rfm12_Tx_Byte(0xAA);
 
-    rfm12_Tx_Byte(0x2D); // RFM12 sync pattern
+    rfm12_Tx_Byte(0x2D);                        // RFM12 sync pattern
     rfm12_Tx_Byte(0xD4);
 
-    rfm12_Tx_Byte(PACKET_MAGIC); // Sync bytes
-    crc = crc8_byte(PACKET_MAGIC);
-
-    rfm12_Tx_Byte(NODE_ADDRESS); // From
-    crc = crc8_byte(NODE_ADDRESS);
-
-    rfm12_Tx_Byte(to_addr); // To
-    crc = crc8_byte(to_addr);
-
-    rfm12_Tx_Byte(HEADER_LENGTH + data_len); // Packet length
+    rfm12_Tx_Byte(HEADER_LENGTH + data_len);    // Total packet length
     crc = crc8_byte(HEADER_LENGTH + data_len);
 
-    rfm12_Tx_Byte(sequence_number); // Sequence
+    rfm12_Tx_Byte(PACKET_MAGIC);                // Magic identification bytes
+    crc = crc8_byte(PACKET_MAGIC);
+
+    rfm12_Tx_Byte(NODE_ADDRESS);                // Sender ID
+    crc = crc8_byte(NODE_ADDRESS);
+
+    rfm12_Tx_Byte(to_addr);                     // Destination ID
+    crc = crc8_byte(to_addr);
+
+    rfm12_Tx_Byte(sequence_number);             // Packet sequence number
     crc = crc8_byte(sequence_number);
     sequence_number++;
 
-    rfm12_Tx_Byte(0); // Reserved
+    rfm12_Tx_Byte(0);                           // Reserved for future use
     crc = crc8_byte(0);
 
-    rfm12_Tx_Byte(0); // Reserved
+    rfm12_Tx_Byte(0);                           // Reserved for future use
     crc = crc8_byte(0);
 
     for (int n = 0; n < data_len; n++) {
@@ -64,9 +64,9 @@ unsigned char send_packet(unsigned char to_addr, unsigned char *data, unsigned c
         crc = crc8_byte(data[n]);
     }
 
-    rfm12_Tx_Byte(crc); // CRC
+    rfm12_Tx_Byte(crc);                         // CRC
 
-    rfm12_Tx_Byte(0xAA); // Trailer
+    rfm12_Tx_Byte(0xAA);                        // Trailer
     rfm12_Tx_Byte(0xAA);
 
     rfm12_DisableTx(); // Turn off Tx
