@@ -144,6 +144,9 @@ void glcd_init() {
     // Reset start position to the top
     glcd_command(GLCD_CMD_DISPLAY_START);
 
+    // Turn the display on
+    glcd_command(GLCD_CMD_DISPLAY_ON);
+
     // Unselect the chip
     GLCD_CS1 = 1;
 }
