@@ -1,3 +1,21 @@
+/**
+ * @file   sd_spi.h
+ * @author David <david@edeca.net>
+ * @date   November, 2013
+ * @brief  Header for SD card library
+ * @details
+ *
+ * A library for accessing SD cards, using the SPI protocol.
+ *
+ * This code works with SDSC (standard capacity), SDHC (high capacity) and
+ * SDXC (extended capacity) cards.  Features specific to this library to
+ * reduce code size include:
+ *
+ *   - blocks read/written are always 512 bytes, including for cards that
+ *     support larger sizes.
+ *
+ */
+
 #define R1 1
 #define R1B 1
 #define R2 2
@@ -16,6 +34,9 @@
 // MSB is not used in the status register, so we use it to
 // indicate a hardware error
 #define SD_ERROR_TIMEOUT 0x80
+
+#define SD_CSD_VERSION_1 0
+#define SD_CSD_VERSION_2 1
 
 #define SD_BLOCKSIZE 512
 
@@ -191,8 +212,25 @@ typedef struct sd_card_info {
     uint16_t manufacture_year;
 } sd_card_info_t;
 
+typedef struct sd_card_data {
+    uint8_t card_type;
+    uint8_t taac;
+    uint8_t nsac;
+    uint8_t tran_speed;
+    uint16_t command_classes;
+    uint8_t read_block_length;
+    uint8_t read_block_partial;
+    uint8_t write_block_misaligned;
+    uint8_t read_block_misaligned;
+    uint8_t dsr_implemented;
+    uint32_t device_size;
+    uint8_t sector_size;
+
+} sd_card_data_t;
+
 void inline sd_start();
 void inline sd_stop();
+uint8_t sd_initialize();
 void sd_pack_argument(uint8_t *argument, uint32_t value);
 uint8_t sd_crc7(uint8_t crc, uint8_t data);
 uint16_t sd_read_register(uint8_t reg, uint8_t *buffer);
