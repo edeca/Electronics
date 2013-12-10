@@ -31,6 +31,26 @@ uint16_t sd_read_register(uint8_t cmd, uint8_t *buffer) {
     return bytes_read;
 }
 
+// Fixed 512 byte read (suitable for SDSC/HC/XC)
+uint16_t sd_read_block(uint32_t address, uint8_t *buffer) {
+    uint8_t arg[4];
+    sd_pack_argument(arg, address);
+    sd_command(CMD17 | SD_KEEP_CARD_SELECTED, arg, CMD17_R);
+
+    // TODO: Check we get the right amount of bytes back, or error
+    uint16_t bytes_read = sd_block_read(buffer, 512);
+    // TODO: Check CRC instead of fake 2 byte read
+    // TODO: Deselect card before 2 byte extra?
+    spi_idle(4);
+    sd_stop();
+
+    printf("in sd_read_block, got %u bytes back from card\r\n", bytes_read);
+
+    // TODO - We could just return 1/0 here by checking bytes_read == 16, so
+    // long as this function is never used for lengths <> 16
+    return bytes_read;
+}
+
 #ifdef SD_CRC_ENABLED
 uint8_t sd_crc7(uint8_t crc, uint8_t data) {
     uint8_t len = 8;
@@ -135,12 +155,11 @@ uint8_t sd_command(unsigned char cmd, unsigned char *argument, uint8_t response_
 }
 
 void inline sd_stop() {
-    // @todo I definitely read that you should give SD cards more cycles
-    //       but where?  And should CS be deasserted?
-    // Good scope diagram here: http://elm-chan.org/docs/mmc/mmc_e.html which
-    // shows why an extra byte should be given after each command, in order to
-    // release the SPI bus.
+    // See section 4.4 of the standard, at least 8 clocks (2 bytes) must be
+    // sent after the last command.
     //
+    // See also: http://elm-chan.org/docs/mmc/mmc_e.html which shows why extra
+    // clocks are necessary, in order to release the SPI bus.
     SD_CS = 1;
     spi_idle(2);
 }
@@ -159,6 +178,8 @@ uint16_t sd_block_read(uint8_t *dest, uint16_t count) {
     // and 0xFE token.
     do {
         timeout--;
+        // TODO: Debug value below, work out a proper value
+        DelayMs(100);
     } while (spi_byte(0xFF) != SD_TOKEN_START_BLOCK && timeout);
 
     if (timeout == 0) return 0;

@@ -73,7 +73,8 @@
 /* Number of tries to wait for the card to go idle during initialization */
 #define SD_IDLE_WAIT 100
 
-#define SD_CMD_TIMEOUT 32
+//#define SD_CMD_TIMEOUT 32
+#define SD_CMD_TIMEOUT 128
 /******************************** Basic command set **************************/
 /* Reset cards to idle state */
 #define CMD0 0
@@ -236,9 +237,10 @@ uint8_t sd_crc7(uint8_t crc, uint8_t data);
 uint16_t sd_read_register(uint8_t reg, uint8_t *buffer);
 uint8_t sd_command(unsigned char cmd, unsigned char *argument, uint8_t response_len);
 uint16_t sd_block_read(uint8_t *dest, uint16_t count);
+uint16_t sd_read_block(uint32_t address, uint8_t *buffer);
 
 extern unsigned char spi_byte(uint8_t);
-extern void spi_read(unsigned char*, unsigned char);
+extern void inline spi_read(unsigned char*, unsigned char);
 extern void inline spi_idle(unsigned char);
 
 // CONFIGURATION
