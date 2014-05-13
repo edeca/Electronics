@@ -44,7 +44,7 @@ mapping = { 'Top Copper': 'gtl',
             'Mechanical 1': 'gko',          # Board outline
             'Drill': 'xln' }
 
-formats = [ ('ARES output ZIP','*CADCAM.zip') ]
+formats = [ ('ARES output ZIP','.zip') ]
 
 def doExit(message):
     print message + "\n"
