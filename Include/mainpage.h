@@ -14,7 +14,7 @@ The source code repository may be browsed at https://github.com/edeca/Electronic
 @section license License
 Unless otherwise stated, all code is released under the BSD license below.
 
-Copyright (c) 2010-2012, David Cannings
+Copyright (c) 2010-2015, David Cannings
 
 All rights reserved.
 
