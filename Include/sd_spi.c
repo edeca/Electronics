@@ -3,7 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 #include "sd_spi.h"
-// TODO: Consider how to do delays nicely in this library
+
+/* @todo Consider how to do delays in this library, use extern? */
 #include "delay.h"
 
 // DEBUGGING ONLY - printf in here
@@ -13,6 +14,8 @@
 //
 // Setup the block read with the appropriate command, then read the 16 byte block
 uint16_t sd_read_register(uint8_t cmd, uint8_t *buffer) {
+    uint16_t bytes_read;
+    
     memset(buffer, 0, 16);
     // We can reuse the output buffer here, both CMD9 and CMD10 take stuff bits
     // that can be any value.
@@ -20,7 +23,7 @@ uint16_t sd_read_register(uint8_t cmd, uint8_t *buffer) {
     sd_command(cmd, buffer, R1);
     
     // TODO: Check we get the right amount of bytes back, or error
-    uint16_t bytes_read = sd_block_read(buffer, 16);
+    bytes_read = sd_block_read(buffer, 16);
     // TODO: Check CRC instead of fake 2 byte read
     // TODO: Deselect card before 2 byte extra?
     spi_idle(4);
@@ -32,9 +35,15 @@ uint16_t sd_read_register(uint8_t cmd, uint8_t *buffer) {
 }
 
 // Fixed 512 byte read (suitable for SDSC/HC/XC)
-uint16_t sd_read_block(uint32_t address, uint8_t *buffer) {
+// address - block address for card (for SDSC, this is )
+// buffer - pointer to a preallocated 512 byte buffer
+uint16_t sd_read_block(uint32_t block_num, uint8_t *buffer) {
     uint8_t arg[4];
-    sd_pack_argument(arg, address);
+    
+    /* @todo If card is SDHC, address should be multiplied by 512, these cards
+     *       are byte addressed */
+    
+    sd_pack_argument(arg, block_num);
     sd_command(CMD17 | SD_KEEP_CARD_SELECTED, arg, CMD17_R);
 
     // TODO: Check we get the right amount of bytes back, or error
@@ -44,10 +53,7 @@ uint16_t sd_read_block(uint32_t address, uint8_t *buffer) {
     spi_idle(4);
     sd_stop();
 
-    printf("in sd_read_block, got %u bytes back from card\r\n", bytes_read);
-
-    // TODO - We could just return 1/0 here by checking bytes_read == 16, so
-    // long as this function is never used for lengths <> 16
+    //printf("in sd_read_block, got %u bytes back from card\r\n", bytes_read);
     return bytes_read;
 }
 
@@ -132,20 +138,17 @@ uint8_t sd_command(unsigned char cmd, unsigned char *argument, uint8_t response_
     // TODO: Set last error here in a global sd status struct
     if (timeout == 0) return SD_ERROR_TIMEOUT;
 
-    // DEBUG
+#ifdef SD_CRC_ENABLED
+    /* @todo If using CRC, flag errors here */
     //if (status & MSK_CRC_ERR) printf(" - CRC error!\r\n");
-
+#endif
+    
     while (--response_len) {
         *argument++ = spi_byte(0xFF);
     }
 
-    // Edit: Check the todo still but leaving this in here messes up a block
-    // read for CID to a 4GB kingston card.
-    // If this is required we will need to invent a "start transaction" and
-    // "stop transaction" macro that idle the bus for 2 cycles before/after
-    // command sequences.
-    // 4GB SanDisk card absolutely needs this in order to operate.  Odd, or the
-    // XC8 compiler is doing unusual things.
+    // See notes for sd_stop, unless we are setting up a block read/write
+    // then we need to deselect the card here.
     if ((cmd & SD_KEEP_CARD_SELECTED) == 0) {
         sd_stop();
     }
@@ -160,12 +163,13 @@ void inline sd_stop() {
     //
     // See also: http://elm-chan.org/docs/mmc/mmc_e.html which shows why extra
     // clocks are necessary, in order to release the SPI bus.
-    SD_CS = 1;
+    spi_deselect_card();
     spi_idle(2);
 }
 
+/* @todo If nothing else needs to happen on stop, remove this function */
 void inline sd_start() {
-    SD_CS = 0;
+    spi_select_card();
 }
 
 // Returns the number of bytes read, or 0 on error.
@@ -178,7 +182,7 @@ uint16_t sd_block_read(uint8_t *dest, uint16_t count) {
     // and 0xFE token.
     do {
         timeout--;
-        // TODO: Debug value below, work out a proper value
+        /* @todo Remove delays, debug value below, work out a proper value */
         DelayMs(100);
     } while (spi_byte(0xFF) != SD_TOKEN_START_BLOCK && timeout);
 
@@ -189,8 +193,10 @@ uint16_t sd_block_read(uint8_t *dest, uint16_t count) {
         bytes_read++;
     }
 
-    // TODO: Read two more bytes (CRC16) and check them
-
+#ifdef SD_CRC_ENABLED
+    /* @todo If using CRC, read two more bytes (CRC16) and check them */
+#endif
+    
     return bytes_read;
 }
 
@@ -223,7 +229,7 @@ uint8_t sd_initialize() {
     // CMD8 *always needs correct CRC*
     sd_pack_argument(data, 0x1A5);
     status = sd_command(CMD8, data, CMD8_R);
-
+    //printf("Status from CMD8 == %u\r\n", status);
     if (status & MSK_ILL_CMD) {
         // Version 1 initialisation
         // TODO: Set v1 card in struct
@@ -232,7 +238,7 @@ uint8_t sd_initialize() {
         // Version 2 initialisation
         // TODO: Set v2 card in struct
         // TODO: Is there anything else in CMD8 response that we need to check?
-
+        
         if (data[2] != 0x01) {
             // TODO: Set error and return
             //printf("voltage range unsupported\r\n");
@@ -263,14 +269,37 @@ uint8_t sd_initialize() {
         // Arguments to CMD55 can be "stuff bits" rather than reserved bits, so
         // use same data as ACMD41.
         sd_command(CMD55, data, CMD55_R);
-        status = sd_command(ACMD41, data, ACMD41_R) & MSK_IDLE;
-        DelayMs(1);
+        status = sd_command(ACMD41, data, ACMD41_R);
+
+#ifdef SD_WORKAROUNDS        
+        /* Workaround: 
+         * 
+         * Some cards reject ACMD41 with "illegal command" if the SDHC/SDXC
+         * bit is set, despite the specification saying:
+         * 
+         * "HCS is ignored by the card, which didn't accept CMD8. Standard 
+         * Capacity SD Memory Card ignores HCS."
+         * 
+         * There does not appear to be a way to check HCS support from the card 
+         * until after initialisation, so don't advertise it to broken cards.
+         */
+        if (status & MSK_ILL_CMD) {
+            data[3] = 0;
+        }
+#endif
+
+        //printf("Status is: %u\r\n", status);
+        
+        // @todo Remove XC8 delays here
+        DelayMs(10);
         timeout--;
+        status &= MSK_IDLE;
     } while (status && timeout);
 
     // Timeout whilst waiting for the initialisation process to complete
     if (timeout == 0) {
-        // Set last error to SD_ERROR_TIMEOUT
+        printf("Timed out waiting for init\r\n");
+        /* @todo set last error to SD_ERROR_TIMEOUT */
         return 0;
     }
 

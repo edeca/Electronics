@@ -1,19 +1,43 @@
 /**
- * @file   sd_spi.h
- * @author David <david@edeca.net>
- * @date   November, 2013
- * @brief  Header for SD card library
+ * @file    sd_spi.h
+ * @author  David <david@edeca.net>
+ * @date    November, 2015
+ * @brief   Header for SD card library
+ * @license BSD license, please see BSD-LICENSE.txt
  * @details
  *
  * A library for accessing SD cards, using the SPI protocol.
  *
  * This code works with SDSC (standard capacity), SDHC (high capacity) and
- * SDXC (extended capacity) cards.  Features specific to this library to
- * reduce code size include:
+ * SDXC (extended capacity) cards.  It does *not* support MMC cards and there
+ * are no plans to implement this.
+ * 
+ * It has been tested with a number of real cards of varying capacities to 
+ * identify cases where retail branded cards misbehave.  See the comments for
+ * workarounds which have been introduced to address these.  Workarounds may
+ * be enabled or disabled with a single #define.
+ * 
+ * References in the code to SD specifications relate to the document:
+ * 
+ *  "Part 1 - Physical Layer Simplified Specification Version 4.10
+ *     January 22, 2013" (copyright SD Group)
+ * 
+ * Features specific to this library to reduce code size include:
  *
- *   - blocks read/written are always 512 bytes, including for cards that
- *     support larger sizes.
- *
+ *   - blocks read / written are always 512 bytes, including for cards that
+ *     support smaller or larger sizes.
+ * 
+ *   - misaligned reads / writes are not supported.  All reads / writes will
+ *     begin and end on a block boundary (multiples of 512).
+ * 
+ *   - only one card is supported at a time, due to the usage of a global
+ *     buffer for card information.  This could be changed at the expense
+ *     of additional global variables.
+ * 
+ * Code using this library must provide a number of functions that implement 
+ * SPI.  This allows the code to be used with either bit-banged or peripheral 
+ * SPI.  There is currently no efficient support for DMA, all calls to SPI 
+ * functions are byte width for both arguments and return values.
  */
 
 #define R1 1
@@ -24,11 +48,11 @@
 // R1 + 4 bytes
 #define R7 5
 
-// There are no commands > 127, so we use MSB to indicate
-// that the chip should not be deselected by spi_command().
+// There are no valid SD commands > 127, so we use the MSB to indicate
+// that the card should not be deselected by spi_command().
 // This is used to setup block reads without toggling the
 // chip select in the middle, which is not valid and is rejected
-// by some cards.
+// by some (but not all) cards.
 #define SD_KEEP_CARD_SELECTED 0x80
 
 // MSB is not used in the status register, so we use it to
@@ -49,7 +73,7 @@
 #define MSK_PARAM_ERR 0x40
 
 // This token precedes any block reads and writes
-// See section 7.3.3.2
+// See section 7.3.3.2 of the simplified specification.
 #define SD_TOKEN_START_BLOCK 0xFE
 
 /*#define SD_TOK_WRITE_STARTBLOCK 0xFE
@@ -201,6 +225,11 @@ typedef union sd_csd_register {
     
 } sd_csd_register_t;
 
+typedef struct _sd_settings {
+    uint8_t version;
+    uint8_t flags;
+} _sd_settings_t;
+
 // A more program friendly version of the CID register
 typedef struct sd_card_info {
     uint8_t manufacturer_id;
@@ -226,7 +255,6 @@ typedef struct sd_card_data {
     uint8_t dsr_implemented;
     uint32_t device_size;
     uint8_t sector_size;
-
 } sd_card_data_t;
 
 void inline sd_start();
@@ -242,9 +270,13 @@ uint16_t sd_read_block(uint32_t address, uint8_t *buffer);
 extern unsigned char spi_byte(uint8_t);
 extern void inline spi_read(unsigned char*, unsigned char);
 extern void inline spi_idle(unsigned char);
+extern void inline spi_select_card();
+extern void inline spi_deselect_card();
 
 // CONFIGURATION
+/** Configuration: enable CRC for all transactions (send and receive) */
 //#define SD_CRC_ENABLED
 
-// Pin configuration
-#define SD_CS  LATC2
+/** Configuration: Work around common problems that aren't strictly standards 
+ *  compliant but appeared during real world testing of this library. */
+#define SD_WORKAROUNDS
