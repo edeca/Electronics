@@ -3,7 +3,7 @@
  * @author  David <david@edeca.net>
  * @date    November, 2015
  * @brief   Header for SD card library
- * @license BSD license, please see BSD-LICENSE.txt
+ * @copyright BSD license, see BSD-LICENSE.txt
  * @details
  *
  * A library for accessing SD cards, using the SPI protocol.
