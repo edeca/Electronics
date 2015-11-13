@@ -13,7 +13,7 @@
  * are no plans to implement this.
  * 
  * It has been tested with a number of real cards of varying capacities to 
- * identify cases where retail branded cards misbehave.  See the comments for
+ * identify cases where retail branded cards misbehave.  See code comments for
  * workarounds which have been introduced to address these.  Workarounds may
  * be enabled or disabled with a single #define.
  * 
@@ -22,9 +22,14 @@
  *  "Part 1 - Physical Layer Simplified Specification Version 4.10
  *     January 22, 2013" (copyright SD Group)
  * 
+ * Code using this library must provide a number of functions that implement 
+ * SPI.  This allows the code to be used with either bit-banged or peripheral 
+ * SPI.  There is currently no efficient support for DMA, all calls to SPI 
+ * functions are byte width for both arguments and return values.
+ * 
  * Features specific to this library to reduce code size include:
  *
- *   - blocks read / written are always 512 bytes, including for cards that
+ *   - block reads / writes are always 512 bytes, including for cards that
  *     support smaller or larger sizes.
  * 
  *   - misaligned reads / writes are not supported.  All reads / writes will
@@ -34,10 +39,13 @@
  *     buffer for card information.  This could be changed at the expense
  *     of additional global variables.
  * 
- * Code using this library must provide a number of functions that implement 
- * SPI.  This allows the code to be used with either bit-banged or peripheral 
- * SPI.  There is currently no efficient support for DMA, all calls to SPI 
- * functions are byte width for both arguments and return values.
+ * Limitations include:
+ * 
+ *   - the library blocks, it may be rewritten as interrupt driven code when
+ *     all basic SD functions work reliably.
+ * 
+ *   - the library is not re-entrant due to usage of global stage variable.  Do 
+ *     not call it from an interrupt handler.
  */
 
 #define R1 1
