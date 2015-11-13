@@ -10,6 +10,18 @@
 // DEBUGGING ONLY - printf in here
 #include <stdio.h>
 
+#if SD_CONFIG_CRC==1
+#warning sd_spi.c: SD CRC support is enabled
+#else
+#warning sd_spi.c: SD CRC support is disabled
+#endif
+
+#if SD_CONFIG_WORKAROUNDS==1
+#warning sd_spi.c: SD workarounds are enabled
+#else
+#warning sd_spi.c: SD workarouns are disabled
+#endif
+
 // TODO: Return a good/bad value
 //
 // Setup the block read with the appropriate command, then read the 16 byte block
@@ -17,17 +29,18 @@ uint16_t sd_read_register(uint8_t cmd, uint8_t *buffer) {
     uint16_t bytes_read;
     
     memset(buffer, 0, 16);
+    
     // We can reuse the output buffer here, both CMD9 and CMD10 take stuff bits
     // that can be any value.
     cmd = cmd | SD_KEEP_CARD_SELECTED;
-    sd_command(cmd, buffer, R1);
+    _sd_command(cmd, buffer, R1);
     
     // TODO: Check we get the right amount of bytes back, or error
-    bytes_read = sd_block_read(buffer, 16);
+    bytes_read = _sd_read(buffer, 16);
     // TODO: Check CRC instead of fake 2 byte read
     // TODO: Deselect card before 2 byte extra?
     spi_idle(4);
-    sd_stop();
+    _sd_stop();
     
     // TODO - We could just return 1/0 here by checking bytes_read == 16, so
     // long as this function is never used for lengths <> 16
@@ -35,30 +48,33 @@ uint16_t sd_read_register(uint8_t cmd, uint8_t *buffer) {
 }
 
 // Fixed 512 byte read (suitable for SDSC/HC/XC)
-// address - block address for card (for SDSC, this is )
+// address - block address for card (block, *not* byte address)
 // buffer - pointer to a preallocated 512 byte buffer
 uint16_t sd_read_block(uint32_t block_num, uint8_t *buffer) {
     uint8_t arg[4];
     
     /* @todo If card is SDHC, address should be multiplied by 512, these cards
      *       are byte addressed */
-    
+    if (card_data.csd_version == SD_CSD_VERSION_1) {
+        block_num *= 512;
+    }
+            
     sd_pack_argument(arg, block_num);
-    sd_command(CMD17 | SD_KEEP_CARD_SELECTED, arg, CMD17_R);
+    _sd_command(CMD17 | SD_KEEP_CARD_SELECTED, arg, CMD17_R);
 
     // TODO: Check we get the right amount of bytes back, or error
-    uint16_t bytes_read = sd_block_read(buffer, 512);
+    uint16_t bytes_read = _sd_read(buffer, 512);
     // TODO: Check CRC instead of fake 2 byte read
     // TODO: Deselect card before 2 byte extra?
     spi_idle(4);
-    sd_stop();
+    _sd_stop();
 
-    //printf("in sd_read_block, got %u bytes back from card\r\n", bytes_read);
+    printf("got %u bytes\r\n", bytes_read);
     return bytes_read;
 }
 
-#ifdef SD_CRC_ENABLED
-uint8_t sd_crc7(uint8_t crc, uint8_t data) {
+#if SD_CONFIG_CRC==1
+uint8_t _sd_crc7(uint8_t crc, uint8_t data) {
     uint8_t len = 8;
     uint8_t tmp;
 
@@ -86,21 +102,21 @@ uint8_t sd_crc7(uint8_t crc, uint8_t data) {
 // If MSB of cmd is set then it will not deassert the card.  This is good
 // for setting up block reads - but the caller is responsible for deselecting
 // the card.
-uint8_t sd_command(unsigned char cmd, unsigned char *argument, uint8_t response_len) {
+uint8_t _sd_command(unsigned char cmd, unsigned char *argument, uint8_t response_len) {
     uint8_t status = 0;
     uint8_t crc = 0;
     uint8_t timeout = SD_CMD_TIMEOUT;
     uint8_t cmd_byte = (cmd & 0x7F) | 0x40;
 
     //printf("Sending command CMD%02u\r\n", cmd);
-    sd_start();
+    _sd_start();
 
-#ifdef SD_CRC_ENABLED
-    crc = sd_crc7(crc, cmd_byte);
-    crc = sd_crc7(crc, argument[3]);
-    crc = sd_crc7(crc, argument[2]);
-    crc = sd_crc7(crc, argument[1]);
-    crc = sd_crc7(crc, argument[0]);
+#if SD_CONFIG_CRC==1
+    crc = _sd_crc7(crc, cmd_byte);
+    crc = _sd_crc7(crc, argument[3]);
+    crc = _sd_crc7(crc, argument[2]);
+    crc = _sd_crc7(crc, argument[1]);
+    crc = _sd_crc7(crc, argument[0]);
     crc <<= 1;
     crc |= 1;
 #else
@@ -138,7 +154,7 @@ uint8_t sd_command(unsigned char cmd, unsigned char *argument, uint8_t response_
     // TODO: Set last error here in a global sd status struct
     if (timeout == 0) return SD_ERROR_TIMEOUT;
 
-#ifdef SD_CRC_ENABLED
+#if SD_CONFIG_CRC==1
     /* @todo If using CRC, flag errors here */
     //if (status & MSK_CRC_ERR) printf(" - CRC error!\r\n");
 #endif
@@ -150,14 +166,14 @@ uint8_t sd_command(unsigned char cmd, unsigned char *argument, uint8_t response_
     // See notes for sd_stop, unless we are setting up a block read/write
     // then we need to deselect the card here.
     if ((cmd & SD_KEEP_CARD_SELECTED) == 0) {
-        sd_stop();
+        _sd_stop();
     }
 
     // We always return the status byte (equivalent to R1)
     return status;
 }
 
-void inline sd_stop() {
+void inline _sd_stop() {
     // See section 4.4 of the standard, at least 8 clocks (2 bytes) must be
     // sent after the last command.
     //
@@ -167,13 +183,11 @@ void inline sd_stop() {
     spi_idle(2);
 }
 
-/* @todo If nothing else needs to happen on stop, remove this function */
-void inline sd_start() {
+void inline _sd_start() {
     spi_select_card();
 }
 
-// Returns the number of bytes read, or 0 on error.
-uint16_t sd_block_read(uint8_t *dest, uint16_t count) {
+uint16_t _sd_read(uint8_t *dest, uint16_t count) {
     uint16_t bytes_read = 0;
     uint8_t timeout = SD_CMD_TIMEOUT;
 
@@ -182,26 +196,28 @@ uint16_t sd_block_read(uint8_t *dest, uint16_t count) {
     // and 0xFE token.
     do {
         timeout--;
-        /* @todo Remove delays, debug value below, work out a proper value */
-        DelayMs(100);
+        // @todo Remove XC8 delays here - check spec for total timeout allowed4
+        // Specification section 4.6.2.1 suggests 100mS timeout (minimum) for
+        // read operations.
+        DelayMs(10);
     } while (spi_byte(0xFF) != SD_TOKEN_START_BLOCK && timeout);
 
-    if (timeout == 0) return 0;
+    if (timeout == 0) {
+        printf("Timed out during block read?\r\n");
+        return 0;
+    }
 
     while (count--) {
         *dest++ = spi_byte(0xFF);
         bytes_read++;
     }
 
-#ifdef SD_CRC_ENABLED
+#if SD_CONFIG_CRC==1
     /* @todo If using CRC, read two more bytes (CRC16) and check them */
 #endif
     
     return bytes_read;
 }
-
-// Returns: 0 for failure (see the last error field), 1 for success
-// If this returns 1 then you can switch SPI implementation to high speed mode
 
 uint8_t sd_initialize() {
     unsigned char status;
@@ -210,14 +226,14 @@ uint8_t sd_initialize() {
     unsigned char data[5] = {0, 0, 0, 0, 0};
 
     // Send a minimum of 74 clock cycles to allow the SD card to
-    // initialise itself.
-    sd_start();
+    // initialise itself.  See specification section 6.4.1.1.
+    _sd_start();
     spi_idle(100);
-    sd_stop();
+    _sd_stop();
 
     // CMD0
     // @todo Bail on timeouts, they aren't good for us
-    status = sd_command(CMD0, data, CMD0_R);
+    status = _sd_command(CMD0, data, CMD0_R);
     if (status == SD_ERROR_TIMEOUT) {
         // TODO: Set last error here
         return 0;
@@ -228,7 +244,7 @@ uint8_t sd_initialize() {
     // of 0xA5 (this can be any value).
     // CMD8 *always needs correct CRC*
     sd_pack_argument(data, 0x1A5);
-    status = sd_command(CMD8, data, CMD8_R);
+    status = _sd_command(CMD8, data, CMD8_R);
     //printf("Status from CMD8 == %u\r\n", status);
     if (status & MSK_ILL_CMD) {
         // Version 1 initialisation
@@ -253,25 +269,28 @@ uint8_t sd_initialize() {
         }
     }
 
-    timeout = 255;
+    timeout = 100;
 
     // Check that the operating voltage is supported by the card by reading
     // the OCR.
     // @todo Check voltage range is legal for the system Vdd
     // @todo Check for illegal command, which indicates "not an SD card"
-    status = sd_command(CMD58, data, CMD58_R);
-    //printf("Status from CMD58: %02x\r\n", status);
+    status = _sd_command(CMD58, data, CMD58_R);
 
-    // ACMD41 to start initialisation, wait for it to finish or timeout.
+    /* Use ACMD41 to start initialisation, wait for it to finish or timeout.
+     *
+     * According to section 4.2.3 of the spec:
+     * "initialization shall be completed within 1 second from the first ACMD41"
+     */
     // Set bit 30 (HCS) to indicate we support SDHC/SDXC.
     sd_pack_argument(data, 0x40000000);
     do {
         // Arguments to CMD55 can be "stuff bits" rather than reserved bits, so
         // use same data as ACMD41.
-        sd_command(CMD55, data, CMD55_R);
-        status = sd_command(ACMD41, data, ACMD41_R);
+        _sd_command(CMD55, data, CMD55_R);
+        status = _sd_command(ACMD41, data, ACMD41_R);
 
-#ifdef SD_WORKAROUNDS        
+#if SD_CONFIG_WORKAROUNDS==1
         /* Workaround: 
          * 
          * Some cards reject ACMD41 with "illegal command" if the SDHC/SDXC
@@ -287,10 +306,10 @@ uint8_t sd_initialize() {
             data[3] = 0;
         }
 #endif
-
-        //printf("Status is: %u\r\n", status);
-        
-        // @todo Remove XC8 delays here
+       
+        // @todo Remove XC8 delays here - check spec for total timeout allowed
+        // Specification section 4.2.3:
+        // "The host repeatedly issues ACMD41 for at least 1 second"
         DelayMs(10);
         timeout--;
         status &= MSK_IDLE;
@@ -303,6 +322,9 @@ uint8_t sd_initialize() {
         return 0;
     }
 
+    // Read registers to update internal status
+    _sd_read_csd();
+    
     return 1;
 }
 
@@ -316,8 +338,97 @@ void sd_pack_argument(uint8_t *argument, uint32_t value) {
     argument[3] = (uint8_t) value;
 }
 
-unsigned char sd_set_blocklen(unsigned long length, unsigned char *response) {
-    unsigned char argument[4];
-    sd_pack_argument(argument, length);
-    return (sd_command(CMD16, argument, CMD16_R));
+uint8_t _sd_read_csd() {
+    uint8_t data[16] = { 0 };
+    uint32_t c_size, block_nr;
+    uint16_t block_len;
+    uint8_t c_size_mult, read_bl_len;
+    
+    // @todo Error handling if this fails
+    sd_read_register(CMD9, data);
+
+    // Set the CSD version, used throughout the library to handle the small
+    // differences between v1 (SDSC) and v2 (SDHC/SDXC) cards.
+    card_data.csd_version = (data[0] >> 6);
+
+    // The card is a SDSC (standard capacity) card
+    if (card_data.csd_version == SD_CSD_VERSION_1) {
+
+        // Shift around 12 bits of C_SIZE register
+        c_size = data[6] & 0x03;
+        c_size <<= 10;
+        c_size |= data[7] << 2;
+        c_size |= (data[8] & 0xC0) >> 6;
+
+        // Shift around the 3 bits of C_SIZE_MULT
+        c_size_mult = (data[9] & 0x3) << 1;
+        c_size_mult |= (data[10] & 0x80) >> 7;
+        read_bl_len = data[5] & 0xF;
+
+        // block_nr = (c_size + 1) * 2^(c_size_mult + 2)
+        block_nr = (c_size + 1) * (2 << c_size_mult + 1);
+        // block_len = 2^read_bl_len
+        block_len = 2 << (read_bl_len - 1);
+        
+        //printf("c_size is: %lu\r\n", c_size);
+        //printf("c_size_mult is: %u\r\n", c_size_mult);
+        //printf("read_bl_len is: %u\r\n", read_bl_len);
+
+        // Calculate capacity in bytes and divide for blocks
+        c_size = (block_nr * block_len) / 512;
+        card_data.total_blocks = c_size;
+
+    } else if (card_data.csd_version == SD_CSD_VERSION_2) {
+        // Shift around the 22 bits of C_SIZE, which can be used directly
+        // as the number of 512 byte blocks (sector size is fixed for SDHC/XC)
+        //
+        // The XC8 compiler has occasional issues with struct members and
+        // optimisation, so use a temporary variable.
+        c_size = data[7] & 0x3F;
+        c_size <<= 16;
+        c_size |= data[8] << 8;
+        c_size |= data[9];
+
+        // Internally we store the number of 512 byte blocks, C_SIZE gives
+        // the number of 512KB blocks so multiply by 1024.
+        c_size <<= 10;
+        
+        card_data.total_blocks = c_size;
+    }
+
+    return 1;
+}
+
+uint32_t sd_get_card_kib() {
+    uint32_t ret = 0;
+    ret = (card_data.total_blocks + 1) / 2;
+    return ret;
+}
+
+uint8_t sd_get_card_data(sd_card_info_t info) {
+    sd_cid_register_t cid;
+
+    // Read the CID register
+    // @todo Check status here and return error if appropriate
+    sd_read_register(CMD10, cid.data);
+
+    memset(info.product_name, 0, 6);
+    memset(info.oem_id, 0, 3);
+
+    info.manufacturer_id = cid.values.manufacturer_id;
+
+    strncpy(info.product_name, cid.values.product_name, 5);
+    strncpy(info.oem_id, cid.values.oem_id, 2);
+
+    info.revision_minor = cid.values.revision & 0xF;
+    info.revision_major = cid.values.revision >> 4;
+
+    info.manufacture_month = cid.data[14] & 0xF;
+    info.manufacture_year = cid.data[14] >> 4;
+    info.manufacture_year |= cid.data[13] >> 4;
+    info.manufacture_year += 2000;
+
+    info.serial_number = cid.values.serial_number;
+    
+    return 1;
 }
