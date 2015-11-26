@@ -1,4 +1,6 @@
 # Microchip MPLABX / XC8 related files
+# See: http://microchip.wikidot.com/mplabx:directory-structure
+
 *.cmf
 *.d
 funclist
@@ -12,9 +14,11 @@ funclist
 *.rlf
 *.sdb
 *.sym
+
 # Note - these ignore the 'private' directory which is machine
 # specific information, meaning any USB debug tools won't be
 # version controlled.
+#
 # See: http://electronics.stackexchange.com/questions/131588/which-files-to-version-control-in-mplabx-nbproject-directory
 **/nbproject/**
 !**/nbproject/configurations.xml
